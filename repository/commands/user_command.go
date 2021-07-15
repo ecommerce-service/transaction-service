@@ -32,7 +32,7 @@ func (c UserCommand) Add() (res string, err error) {
 
 func (c UserCommand) Edit() (res string, err error) {
 	setStatement := `first_name=$1,last_name=$2,email=$3,username=$4,address=$5,phone_number=$6,role_id=$7,updated_at=$8`
-	editParams := []interface{}{c.model.FirstName(), c.model.LastName(), c.model.Email(), c.model.UserName(), c.model.Address(), c.model.PhoneNumber(), c.model.RoleId(), c.model.UpdatedAt(),
+	editParams := []interface{}{c.model.FirstName(), c.model.LastName(), c.model.Email(), c.model.UserName(), c.model.Address().String, c.model.PhoneNumber(), c.model.RoleId(), c.model.UpdatedAt(),
 		c.model.Id()}
 	if c.model.Password() != "" {
 		setStatement += `,password=$10`
@@ -49,7 +49,7 @@ func (c UserCommand) Edit() (res string, err error) {
 }
 
 func (c UserCommand) Delete() (res string, err error) {
-	statement := `UPDATE users SET updated_at=$1,deleted_at=$2 WHERE id=$3`
+	statement := `UPDATE users SET updated_at=$1,deleted_at=$2 WHERE id=$3 RETURNING id`
 	err = c.db.QueryRow(statement, c.model.UpdatedAt(), c.model.DeletedAt().Time, c.model.Id()).Scan(&res)
 	if err != nil {
 		return res, err

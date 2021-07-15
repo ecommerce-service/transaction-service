@@ -55,7 +55,6 @@ func (c *Connection) StoreWithExpired(key string, val interface{}, duration stri
 	if err != nil {
 		return err
 	}
-	fmt.Println(val)
 
 	err = c.client.Set(key, string(b), dur).Err()
 

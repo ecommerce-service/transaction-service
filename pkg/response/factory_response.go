@@ -39,12 +39,14 @@ func (resp FactoryResponseWithMeta) Create(ctx *fiber.Ctx) error {
 type FactoryResponseWithOutMeta struct {
 	data         interface{}
 	errorMessage error
+	statusCode int
 }
 
-func NewResponseWithOutMeta(bodyData interface{}, errorMessage error) IFactoryResponses {
+func NewResponseWithOutMeta(bodyData interface{}, errorMessage error,statusCode int) IFactoryResponses {
 	return &FactoryResponseWithOutMeta{
 		data:         bodyData,
 		errorMessage: errorMessage,
+		statusCode: statusCode,
 	}
 }
 
@@ -55,7 +57,7 @@ func (resp FactoryResponseWithOutMeta) Create(ctx *fiber.Ctx) error {
 
 	data := newBodyWithOutMeta(resp.data).Create()
 
-	return ctx.Status(http.StatusOK).JSON(data)
+	return ctx.Status(resp.statusCode).JSON(data)
 }
 
 // FactoryResponseBadRequest response bad request

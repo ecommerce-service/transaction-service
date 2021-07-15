@@ -14,6 +14,7 @@ type IConnection interface {
 	Pool()
 	Migration(migrationDirectory string)
 	GetDbInstance() *sql.DB
+	Begin() (*sql.Tx, error)
 }
 
 type Connection struct {
@@ -59,4 +60,10 @@ func (c *Connection) Migration(migrationDirectory string) {
 
 func (c *Connection) GetDbInstance() *sql.DB {
 	return c.db
+}
+
+func (c *Connection) Begin() (*sql.Tx, error) {
+	res, err := c.db.Begin()
+
+	return res, err
 }

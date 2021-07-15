@@ -5,5 +5,5 @@ import (
 )
 
 type HandlerContract struct {
-	UcContract *usecases.UseCaseContract
+	UseCaseContract *usecases.UseCaseContract
 }

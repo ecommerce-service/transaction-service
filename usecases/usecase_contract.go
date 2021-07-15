@@ -8,6 +8,7 @@ import (
 type UseCaseContract struct {
 	RequestID string
 	UserID    string
+	RoleID    int
 	Config    *configs.Config
 }
 
@@ -30,6 +31,9 @@ const (
 
 	//default last page for pagination
 	defaultLastPage = 0
+
+	//default role id for normal users
+	DefaultIDNormalUsers = 2
 )
 
 func (uc *UseCaseContract) SetPaginationParameter(page, limit int, order, sort string) (int, int, int, string, string) {

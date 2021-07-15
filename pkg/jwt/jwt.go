@@ -6,8 +6,9 @@ import (
 )
 
 type IJwt interface {
-	GetToken(issuer, payload string) (string, int64, error)
-	GetRefreshToken(issuer, payload string) (string, int64, error)
+	GenerateToken(issuer, payload string) (string, int64, error)
+	GenerateRefreshToken(issuer, payload string) (string, int64, error)
+	GetTokenSecret() string
 }
 
 type JwtCredential struct {
@@ -15,6 +16,10 @@ type JwtCredential struct {
 	ExpiredToken        int
 	RefreshTokenSecret  string
 	ExpiredRefreshToken int
+}
+
+func (cred JwtCredential) GetTokenSecret() string {
+	return cred.TokenSecret
 }
 
 func NewJwt(tokenSecret,refreshTokenSecret string, expiredToken,expiredRefreshToken int) IJwt{
@@ -31,7 +36,7 @@ type CustomClaims struct {
 	Payload string `json:"payload"`
 }
 
-func (cred JwtCredential) GetToken(issuer, payload string) (string, int64, error) {
+func (cred JwtCredential) GenerateToken(issuer, payload string) (string, int64, error) {
 	expirationTime := time.Now().Add(time.Duration(cred.ExpiredToken) * time.Hour).Unix()
 
 	claims := &CustomClaims{
@@ -48,7 +53,7 @@ func (cred JwtCredential) GetToken(issuer, payload string) (string, int64, error
 	return token, expirationTime, err
 }
 
-func (cred JwtCredential) GetRefreshToken(issuer, payload string) (string, int64, error) {
+func (cred JwtCredential) GenerateRefreshToken(issuer, payload string) (string, int64, error) {
 	expirationTime := time.Now().Add(time.Duration(cred.ExpiredRefreshToken) * time.Hour).Unix()
 
 	claims := &CustomClaims{

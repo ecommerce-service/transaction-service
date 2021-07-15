@@ -6,4 +6,6 @@ type IUserHandler interface {
 	IBaseHandler
 
 	EditDepositAmount(ctx *fiber.Ctx) (err error)
+
+	GetCurrentUser(ctx *fiber.Ctx) (err error)
 }

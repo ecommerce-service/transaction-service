@@ -46,7 +46,7 @@ func (c *Config) SetDBConnection() *Config {
 }
 
 func (c *Config) SetRedisConnection() *Config {
-	c.Redis = redis.NewConnection(os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD"))
+	c.Redis = redis.NewConnection(os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD")).Connect()
 
 	return c
 }

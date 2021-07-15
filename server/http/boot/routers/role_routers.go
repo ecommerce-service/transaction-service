@@ -2,6 +2,7 @@ package routers
 
 import (
 	"booking-car/server/http/handlers"
+	"booking-car/server/http/middlewares"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -19,8 +20,10 @@ func NewRoleRouters(routeGroup fiber.Router,handler handlers.HandlerContract) IR
 
 func (r RoleRouters) RegisterRouter() {
 	handler := handlers.NewRoleHandler(r.Handler)
+	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
 
 	roleRouters := r.RouteGroup.Group("/role")
+	roleRouters.Use(jwt.Use)
 	roleRouters.Get("",handler.BrowseAll)
 }
 

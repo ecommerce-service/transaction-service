@@ -3,7 +3,7 @@ package handlers
 import "github.com/gofiber/fiber/v2"
 
 type IBaseHandler interface {
-	Browse(ctx *fiber.Ctx) (err error)
+	GetListWithPagination(ctx *fiber.Ctx) (err error)
 
 	GetUserByID(ctx *fiber.Ctx) (err error)
 

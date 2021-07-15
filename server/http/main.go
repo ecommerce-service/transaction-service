@@ -27,17 +27,17 @@ func main() {
 
 	//load config
 	config := configs.NewConfig().SetRedisConnection().SetValidator().SetJwe().SetJwt().SetDBConnection()
-	db,err := config.DB.Connect()
+	db, err := config.DB.Connect()
 	if err != nil {
 		log.Fatal(err)
 	}
+	db.Pool()
 	db.Migration(os.Getenv("DB_MIGRATIONS_DIRECTORY"))
 	defer db.GetDbInstance().Close()
 
-
 	//initialization of fiber instance
 	app := fiber.New()
-	boot := bootApp.NewBoot(app,config)
+	boot := bootApp.NewBoot(app, config)
 	boot.App.Use(recover.New())
 	boot.App.Use(requestid.New())
 	boot.App.Use(cors.New())
@@ -45,7 +45,7 @@ func main() {
 		Format:     logFormat + "\n",
 		TimeFormat: time.RFC3339,
 		TimeZone:   "Asia/Jakarta",
-	},logger.Config{}))
+	}, logger.Config{}))
 
 	//register all routers
 	boot.RegisterAllRouters()

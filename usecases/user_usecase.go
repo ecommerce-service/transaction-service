@@ -47,10 +47,10 @@ func (uc UserUseCase) GetListWithPagination(search, orderBy, sort string, page, 
 	return res, pagination, nil
 }
 
-func (uc UserUseCase) GetByID(ID string) (res view_models.UserVm, err error) {
+func (uc UserUseCase) GetByID(id string) (res view_models.UserVm, err error) {
 	q := queries.NewUserQuery(uc.Config.DB.GetDbInstance())
 
-	user, err := q.ReadBy("u.id", "=", ID)
+	user, err := q.ReadBy("u.id", "=", id)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-user-readByID")
 		return res, err
@@ -63,6 +63,8 @@ func (uc UserUseCase) GetByID(ID string) (res view_models.UserVm, err error) {
 func (uc UserUseCase) Edit(req *requests.UserEditRequest, id string) (res string, err error) {
 	now := time.Now().UTC()
 	var password string
+
+	uc.Config.DB.GetDbInstance()
 
 	isDuplicate, err := uc.CheckDuplication(req.Email, req.Username, req.PhoneNumber, id)
 	if err != nil && isDuplicate {
@@ -108,16 +110,16 @@ func (uc UserUseCase) Add(req *requests.UserAddRequest) (res string, err error) 
 	return res, nil
 }
 
-func (uc UserUseCase) Delete(ID string) (err error) {
+func (uc UserUseCase) Delete(id string) (err error) {
 	now := time.Now().UTC()
 
-	count, err := uc.CountBy("u.id", "=", "", ID)
+	count, err := uc.CountBy("u.id", "=", "", id)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-user-CountByID")
 		return err
 	}
 	if count > 0 {
-		model := models.NewUserModel().SetUpdatedAt(now).SetDeletedAt(now)
+		model := models.NewUserModel().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
 		cmd := commands.NewUserCommand(uc.Config.DB.GetDbInstance(), model)
 		_, err = cmd.Delete()
 		if err != nil {
