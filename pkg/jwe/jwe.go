@@ -7,10 +7,22 @@ import (
 	"github.com/lestrrat/go-jwx/jwe"
 )
 
+type IJwe interface {
+	GenerateJwePayload(payload map[string]interface{}) (res string, err error)
+	Rollback(payload string) (res map[string]interface{}, err error)
+}
+
 // Credential ...
 type Credential struct {
 	KeyLocation string
 	Passphrase  string
+}
+
+func NewJwe(keyLocation, passphrase string) IJwe {
+	return &Credential{
+		KeyLocation: keyLocation,
+		Passphrase:  passphrase,
+	}
 }
 
 // Generate ...

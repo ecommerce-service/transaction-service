@@ -125,7 +125,7 @@ func (l *StructuredLoggerEntry) Panic(v interface{}, stack []byte) {
 // logger entry and set additional fields between handlers.
 //
 // This is a useful pattern to use to set state on the entry as it
-// passes through the handler chain, which at any point can be logged
+// passes through the handlers chain, which at any point can be logged
 // with a call to .Print(), .Info(), etc.
 
 // GetLogEntry ...

@@ -57,5 +57,6 @@ func rsaConfigSetup(rsaPrivateKeyLocation, rsaPrivateKeyPassword string) (*rsa.P
 // GenRSA returns a new RSA key of bits length
 func GenRSA(bits int) (*rsa.PrivateKey, error) {
 	key, err := rsa.GenerateKey(rand.Reader, bits)
+	fmt.Println(key)
 	return key, err
 }

@@ -4,42 +4,59 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	migrate "github.com/rubenv/sql-migrate"
+	log "github.com/sirupsen/logrus"
 	"time"
 )
 
-type Connection struct {
-	Host                    string
-	DbName                  string
-	User                    string
-	Password                string
-	Port                    string
-	Location                *time.Location
-	SslMode                 string
-	SslCert                 string
-	SslKey                  string
-	SslRootCert             string
-	DBMaxConnection         int
-	DBMAxIdleConnection     int
-	DBMaxLifeTimeConnection int
+type IConnection interface {
+	Connect() (IConnection, error)
+	Pool()
+	Migration(migrationDirectory string)
+	GetDbInstance() *sql.DB
 }
 
-func (c Connection) DbConnect() (*sql.DB, error) {
+type Connection struct {
+	Config *Config
+	db     *sql.DB
+}
+
+func NewConnection(config *Config) IConnection {
+	return &Connection{Config: config}
+}
+
+func (c *Connection) Connect() (IConnection, error) {
+	var err error
 	connStr := fmt.Sprintf(
-		"postgres://%s:%s@%s:5432/%s?sslmode=%s&TimeZone=UTC", c.User, c.Password, c.Host, c.DbName, c.SslMode,
+		"postgres://%s:%s@%s:%s/%s?sslmode=%s&TimeZone=%s", c.Config.User(), c.Config.Password(), c.Config.Host(), c.Config.Port(), c.Config.DbName(),
+		c.Config.SslMode(), c.Config.Location(),
 	)
 
-	if c.SslMode == "require" {
-		connStr = fmt.Sprintf(
-			"postgres://%s:%s@%s:%d/%s?sslmode=%s&TimeZone=UTC&sslcert=%s&sslkey=%s&sslrootcert=%s",
-			c.User, c.Password, c.Host, c.Port, c.DbName, c.SslMode, c.SslCert, c.SslKey, c.SslRootCert,
-		)
+	c.db, err = sql.Open("postgres", connStr)
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	db, err := sql.Open("postgres", connStr)
-	err = db.Ping()
-	db.SetMaxOpenConns(c.DBMaxConnection)
-	db.SetMaxIdleConns(c.DBMAxIdleConnection)
-	db.SetConnMaxLifetime(time.Duration(c.DBMaxLifeTimeConnection) * time.Second)
+	return c, err
+}
 
-	return db, err
+func (c *Connection) Pool() {
+	c.db.SetMaxOpenConns(c.Config.DBMaxConnection())
+	c.db.SetMaxIdleConns(c.Config.DBMAxIdleConnection())
+	c.db.SetConnMaxLifetime(time.Duration(c.Config.DBMaxLifeTimeConnection()) * time.Second)
+}
+
+func (c *Connection) Migration(migrationDirectory string) {
+	migrations := &migrate.FileMigrationSource{
+		Dir: migrationDirectory,
+	}
+	n, err := migrate.Exec(c.db, "postgres", migrations, migrate.Up)
+	if err != nil {
+		log.Fatal("Error migration := ", err.Error())
+	}
+	fmt.Printf("Applied %d migrations!\n", n)
+}
+
+func (c *Connection) GetDbInstance() *sql.DB {
+	return c.db
 }

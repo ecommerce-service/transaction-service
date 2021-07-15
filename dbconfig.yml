@@ -1,0 +1,4 @@
+development:
+  dialect: postgres
+  datasource: postgres://postgres:v1d14ry4@localhost:5432/booking_car?sslmode=disable&TimeZone=UTC
+  dir: migrations
