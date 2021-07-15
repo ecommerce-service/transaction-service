@@ -21,7 +21,7 @@ func (boot *Boot) RegisterAllRouters() {
 	})
 
 	//authentication routers
-	authenticationRouters := routers.NewAuthenticationRouters(rootRouter,handler)
+	authenticationRouters := routers.NewAuthenticationRouters(rootRouter, handler)
 	authenticationRouters.RegisterRouter()
 
 	//role routers
@@ -33,6 +33,10 @@ func (boot *Boot) RegisterAllRouters() {
 	userRouters.RegisterRouter()
 
 	//car brand routers
-	carBrandRouters := routers.NewCarBrandRouters(rootRouter,handler)
+	carBrandRouters := routers.NewCarBrandRouters(rootRouter, handler)
 	carBrandRouters.RegisterRouter()
+
+	//car type routers
+	carTypeRouters := routers.NewCarTypeRouters(rootRouter, handler)
+	carTypeRouters.RegisterRouter()
 }

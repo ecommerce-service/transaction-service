@@ -41,7 +41,7 @@ func (h CarBrandHandler) GetAll(ctx *fiber.Ctx) error {
 	return response.NewResponse(response.NewResponseWithOutMeta(res, err, http.StatusOK)).Send(ctx)
 }
 
-func (h CarBrandHandler) GetUserByID(ctx *fiber.Ctx) (err error) {
+func (h CarBrandHandler) GetByID(ctx *fiber.Ctx) (err error) {
 	id := ctx.Params("id")
 
 	uc := usecases.NewCarBrandUseCase(h.UseCaseContract)

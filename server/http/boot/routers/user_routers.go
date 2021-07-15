@@ -26,7 +26,7 @@ func (r UserRouters) RegisterRouter() {
 	userRouters.Use(jwt.Use)
 	userRouters.Get("", handler.GetListWithPagination)
 	userRouters.Get("/current",handler.GetCurrentUser)
-	userRouters.Get("/:id", handler.GetUserByID)
+	userRouters.Get("/:id", handler.GetByID)
 	userRouters.Put("/:id", handler.Edit)
 	userRouters.Post("", handler.Add)
 	userRouters.Delete("/:id", handler.Delete)

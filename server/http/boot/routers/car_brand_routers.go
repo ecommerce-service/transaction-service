@@ -26,7 +26,7 @@ func (r CarBrandRouters) RegisterRouter() {
 	carBrandRouters.Use(jwt.Use)
 	carBrandRouters.Get("", handler.GetListWithPagination)
 	carBrandRouters.Get("/all", handler.GetAll)
-	carBrandRouters.Get("/:id", handler.GetUserByID)
+	carBrandRouters.Get("/:id", handler.GetByID)
 	carBrandRouters.Put("/:id", handler.Edit)
 	carBrandRouters.Post("", handler.Add)
 	carBrandRouters.Delete("/:id", handler.Delete)

@@ -165,5 +165,4 @@ func (uc CarBrandUseCase) CountBy(column, operator, id string, value interface{}
 	}
 
 	return res, nil
-
 }
