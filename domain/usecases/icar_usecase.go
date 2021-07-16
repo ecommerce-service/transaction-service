@@ -23,4 +23,6 @@ type ICarUseCase interface {
 	CountBy(column, operator, id string, value interface{}) (res int, err error)
 
 	ValidateDuplication(productionYear, carTypeId, carColorId, id string) (bool, error)
+
+	ReduceStock(ids []string, reducedBy int) (err error)
 }

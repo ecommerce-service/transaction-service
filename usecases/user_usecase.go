@@ -78,7 +78,7 @@ func (uc UserUseCase) Edit(req *requests.UserEditRequest, id string) (res string
 		password, _ := hashing.HashAndSalt(req.Password)
 		model.SetPassword(password)
 	}
-	cmd := commands.NewUserCommand(uc.Config.DB.GetDbInstance(), model)
+	cmd := commands.NewUserCommand(uc.Config.DB, model)
 	res, err = cmd.Edit()
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-user-edit")
@@ -100,7 +100,7 @@ func (uc UserUseCase) Add(req *requests.UserAddRequest) (res string, err error) 
 	password, _ := hashing.HashAndSalt(req.Password)
 	model := models.NewUserModel().SetFirstName(req.FirstName).SetLastName(req.LastName).SetEmail(req.Email).SetUserName(req.Username).
 		SetPassword(password).SetAddress(req.Address).SetPhoneNumber(req.PhoneNumber).SetRoleId(req.RoleID).SetCreatedAt(now).SetUpdatedAt(now)
-	cmd := commands.NewUserCommand(uc.Config.DB.GetDbInstance(), model)
+	cmd := commands.NewUserCommand(uc.Config.DB, model)
 	res, err = cmd.Add()
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-user-add")
@@ -120,7 +120,7 @@ func (uc UserUseCase) Delete(id string) (err error) {
 	}
 	if count > 0 {
 		model := models.NewUserModel().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
-		cmd := commands.NewUserCommand(uc.Config.DB.GetDbInstance(), model)
+		cmd := commands.NewUserCommand(uc.Config.DB, model)
 		_, err = cmd.Delete()
 		if err != nil {
 			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-user-delete")
@@ -187,4 +187,24 @@ func (uc UserUseCase) CheckDuplication(email, username, phoneNumber, id string) 
 	}
 
 	return false, err
+}
+
+func (uc UserUseCase) AddDepositBalance(id string, amount float64) (err error) {
+	now := time.Now().UTC()
+
+	user,err := uc.GetByID(id)
+	if err != nil {
+		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-user-getById")
+		return err
+	}
+
+	model := models.NewUserModel().SetId(id).SetDepositAmount(user.DepositAmount+amount).SetUpdatedAt(now)
+	cmd := commands.NewUserCommand(uc.Config.DB,model)
+	err = cmd.EditDeposit()
+	if err != nil {
+		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-user-editDeposit")
+		return err
+	}
+
+	return nil
 }

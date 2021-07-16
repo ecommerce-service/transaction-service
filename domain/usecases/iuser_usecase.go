@@ -21,4 +21,6 @@ type IUserUseCase interface {
 	CountBy(column, operator, id string, value interface{}) (res int, err error)
 
 	CheckDuplication(email, username, phoneNumber, id string) (bool, error)
+
+	AddDepositBalance(id string,amount float64) (err error)
 }

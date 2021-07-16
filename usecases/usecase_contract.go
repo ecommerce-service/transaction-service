@@ -32,8 +32,17 @@ const (
 	//default last page for pagination
 	defaultLastPage = 0
 
-	//default role id for normal users
+	// DefaultIDNormalUsers default role id for normal users
 	DefaultIDNormalUsers = 2
+
+	// DefaultTransactionType default transaction type
+	DefaultTransactionType = "on_going"
+
+	// SuccessTransactionType transaction success type
+	SuccessTransactionType = "success"
+
+	// CancelTransactionType transaction canceled type
+	CancelTransactionType = "canceled"
 )
 
 func (uc *UseCaseContract) SetPaginationParameter(page, limit int, order, sort string) (int, int, int, string, string) {

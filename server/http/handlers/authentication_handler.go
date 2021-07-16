@@ -33,3 +33,19 @@ func (h AuthenticationHandler) Login(ctx *fiber.Ctx) error {
 
 	return response.NewResponse(response.NewResponseWithOutMeta(res, err, http.StatusUnauthorized)).Send(ctx)
 }
+
+func (h AuthenticationHandler) Register(ctx *fiber.Ctx) error {
+	req := new(requests.RegisterRequest)
+
+	if err := ctx.BodyParser(req); err != nil {
+		return response.NewResponse(response.NewResponseBadRequest(err)).Send(ctx)
+	}
+	if err := h.UseCaseContract.Config.Validator.GetValidator().Struct(req); err != nil {
+		return response.NewResponse(response.NewResponseErrorValidator(err.(validator.ValidationErrors), h.UseCaseContract.Config.Validator.GetTranslator())).Send(ctx)
+	}
+
+	uc := usecases.NewAuthenticationUseCase(h.UseCaseContract)
+	err := uc.Registration(req)
+
+	return response.NewResponse(response.NewResponseWithOutMeta(nil, err, http.StatusUnauthorized)).Send(ctx)
+}

@@ -22,6 +22,27 @@ func NewAuthenticationUseCase(useCaseContract *UseCaseContract) usecases.IAuthen
 	return &AuthenticationUseCase{UseCaseContract: useCaseContract}
 }
 
+func (uc AuthenticationUseCase) Registration(req *requests.RegisterRequest) (err error) {
+	userUc := NewUserUseCase(uc.UseCaseContract)
+	userRequest := requests.UserAddRequest{
+		FirstName:   req.FirstName,
+		LastName:    req.LastName,
+		Email:       req.Email,
+		Username:    req.Username,
+		Password:    req.Password,
+		Address:     req.Address,
+		PhoneNumber: req.PhoneNumber,
+		RoleID:      DefaultIDNormalUsers,
+	}
+	_, err = userUc.Add(&userRequest)
+	if err != nil {
+		logruslogger.Log(logruslogger.WarnLevel, messages.CredentialDoNotMatch, functioncaller.PrintFuncName(), "uc-user-add")
+		return err
+	}
+
+	return nil
+}
+
 func (uc AuthenticationUseCase) Login(req *requests.LoginRequest) (res view_models.LoginVm, err error) {
 	user, valid := uc.ValidateCredential(req.Username, req.Password)
 	if !valid {

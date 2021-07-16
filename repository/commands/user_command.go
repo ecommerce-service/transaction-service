@@ -3,15 +3,15 @@ package commands
 import (
 	"booking-car/domain/commands"
 	"booking-car/domain/models"
-	"database/sql"
+	"booking-car/pkg/postgresql"
 )
 
 type UserCommand struct {
-	db    *sql.DB
+	db    postgresql.IConnection
 	model *models.Users
 }
 
-func NewUserCommand(db *sql.DB, model *models.Users) commands.IUserCommand {
+func NewUserCommand(db postgresql.IConnection, model *models.Users) commands.IUserCommand {
 	return &UserCommand{
 		db:    db,
 		model: model,
@@ -21,7 +21,7 @@ func NewUserCommand(db *sql.DB, model *models.Users) commands.IUserCommand {
 func (c UserCommand) Add() (res string, err error) {
 	statement := `INSERT INTO users (first_name,last_name,email,username,password,address,phone_number,role_id,created_at,updated_at) ` +
 		`VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`
-	err = c.db.QueryRow(statement, c.model.FirstName(), c.model.LastName(), c.model.Email(), c.model.UserName(), c.model.Password(), c.model.Address().String, c.model.PhoneNumber(),
+	err = c.db.GetDbInstance().QueryRow(statement, c.model.FirstName(), c.model.LastName(), c.model.Email(), c.model.UserName(), c.model.Password(), c.model.Address().String, c.model.PhoneNumber(),
 		c.model.RoleId(), c.model.CreatedAt(), c.model.UpdatedAt()).Scan(&res)
 	if err != nil {
 		return res, err
@@ -40,7 +40,7 @@ func (c UserCommand) Edit() (res string, err error) {
 	}
 
 	statement := `UPDATE users SET ` + setStatement + ` WHERE id=$9 RETURNING id`
-	err = c.db.QueryRow(statement, editParams...).Scan(&res)
+	err = c.db.GetDbInstance().QueryRow(statement, editParams...).Scan(&res)
 	if err != nil {
 		return res, err
 	}
@@ -50,7 +50,7 @@ func (c UserCommand) Edit() (res string, err error) {
 
 func (c UserCommand) Delete() (res string, err error) {
 	statement := `UPDATE users SET updated_at=$1,deleted_at=$2 WHERE id=$3 RETURNING id`
-	err = c.db.QueryRow(statement, c.model.UpdatedAt(), c.model.DeletedAt().Time, c.model.Id()).Scan(&res)
+	err = c.db.GetDbInstance().QueryRow(statement, c.model.UpdatedAt(), c.model.DeletedAt().Time, c.model.Id()).Scan(&res)
 	if err != nil {
 		return res, err
 	}
@@ -58,6 +58,13 @@ func (c UserCommand) Delete() (res string, err error) {
 	return res, nil
 }
 
-func (c UserCommand) EditDeposit() (res string, err error) {
-	panic("implement me")
+func (c UserCommand) EditDeposit() (err error) {
+	statement := `UPDATE users SET deposit_amount=$1,updated_at=$2 WHERE id=$3`
+
+	_, err = c.db.GetDbInstance().Exec(statement, c.model.DepositAmount().Float64, c.model.UpdatedAt(), c.model.Id())
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

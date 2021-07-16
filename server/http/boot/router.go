@@ -47,4 +47,12 @@ func (boot *Boot) RegisterAllRouters() {
 	//car routers
 	carRouters := routers.NewCarRouters(rootRouter, handler)
 	carRouters.RegisterRouter()
+
+	//cart routers
+	cartRouters := routers.NewCartRouters(rootRouter, handler)
+	cartRouters.RegisterRouter()
+
+	//transaction routers
+	transactionRouters := routers.NewTransactionRouters(rootRouter, handler)
+	transactionRouters.RegisterRouter()
 }

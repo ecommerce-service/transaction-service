@@ -74,7 +74,7 @@ func (uc CarUseCase) Edit(req *requests.CarRequest, id string) (res string, err 
 	model := models.NewCarModel().SetCarTypeId(req.CarTypeID).SetCarColorId(req.CarColorID).
 		SetProductionYear(req.ProductionYear).SetPrice(req.Price).SetStock(req.Stock).SetId(id).
 		SetUpdatedAt(now)
-	cmd := commands.NewCarCommand(uc.Config.DB.GetDbInstance(), model)
+	cmd := commands.NewCarCommand(uc.Config.DB, model)
 	res, err = cmd.Edit()
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-car-edit")
@@ -94,8 +94,8 @@ func (uc CarUseCase) EditStock(id string, reduceStock int) (err error) {
 	}
 
 	model := models.NewCarModel().SetStock(car.Stock - reduceStock).SetUpdatedAt(now).SetId(id)
-	cmd := commands.NewCarCommand(uc.Config.DB.GetDbInstance(), model)
-	err = cmd.EditStock(uc.Config.DB.GetTx())
+	cmd := commands.NewCarCommand(uc.Config.DB, model)
+	err = cmd.EditStock()
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (uc CarUseCase) Add(req *requests.CarRequest) (res string, err error) {
 	model := models.NewCarModel().SetCarTypeId(req.CarTypeID).SetCarColorId(req.CarColorID).
 		SetProductionYear(req.ProductionYear).SetPrice(req.Price).SetStock(req.Stock).SetCreatedAt(now).
 		SetUpdatedAt(now)
-	cmd := commands.NewCarCommand(uc.Config.DB.GetDbInstance(), model)
+	cmd := commands.NewCarCommand(uc.Config.DB, model)
 	res, err = cmd.Add()
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-car-add")
@@ -138,7 +138,7 @@ func (uc CarUseCase) Delete(id string) (err error) {
 	}
 	if count > 0 {
 		model := models.NewCarModel().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
-		cmd := commands.NewCarCommand(uc.Config.DB.GetDbInstance(), model)
+		cmd := commands.NewCarCommand(uc.Config.DB, model)
 		_, err = cmd.Delete()
 		if err != nil {
 			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-car-delete")
@@ -197,4 +197,16 @@ func (uc CarUseCase) ValidateDuplication(productionYear, carTypeId, carColorId, 
 	}
 
 	return false, nil
+}
+
+func (uc CarUseCase) ReduceStock(ids []string, reducedBy int) (err error) {
+	for _, id := range ids {
+		err = uc.EditStock(id, reducedBy)
+		if err != nil {
+			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-car-editStock")
+			return err
+		}
+	}
+
+	return nil
 }

@@ -44,4 +44,6 @@ var (
 	InvalidFileExtension    = "Invalid file extension!"
 	EmailUnverified         = "email unverified"
 	HttpRequestError        = "http request error"
+	NotEnoughStock          = "not enough stock"
+	NotEnoughBalance        = "not enough balance"
 )
