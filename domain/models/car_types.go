@@ -14,7 +14,7 @@ type CarTypes struct {
 	deletedAt sql.NullTime
 }
 
-func NewCarType() *CarTypes{
+func NewCarTypeModel() *CarTypes{
 	return &CarTypes{}
 }
 

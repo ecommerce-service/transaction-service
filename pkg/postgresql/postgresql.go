@@ -14,12 +14,16 @@ type IConnection interface {
 	Pool()
 	Migration(migrationDirectory string)
 	GetDbInstance() *sql.DB
-	Begin() (*sql.Tx, error)
+	Begin() (err error)
+	GetTx() *sql.Tx
+	Commit() (err error)
+	RollBack() (err error)
 }
 
 type Connection struct {
 	Config *Config
 	db     *sql.DB
+	tx     *sql.Tx
 }
 
 func NewConnection(config *Config) IConnection {
@@ -62,8 +66,30 @@ func (c *Connection) GetDbInstance() *sql.DB {
 	return c.db
 }
 
-func (c *Connection) Begin() (*sql.Tx, error) {
-	res, err := c.db.Begin()
+func (c *Connection) Begin() (err error) {
+	c.tx, err = c.db.Begin()
 
-	return res, err
+	return err
+}
+
+func (c *Connection) GetTx() *sql.Tx {
+	return c.tx
+}
+
+func (c *Connection) Commit() (err error) {
+	err = c.tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Connection) RollBack() (err error) {
+	err = c.tx.Rollback()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

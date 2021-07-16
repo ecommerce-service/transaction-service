@@ -39,4 +39,12 @@ func (boot *Boot) RegisterAllRouters() {
 	//car type routers
 	carTypeRouters := routers.NewCarTypeRouters(rootRouter, handler)
 	carTypeRouters.RegisterRouter()
+
+	//car colors routers
+	carColorRouters := routers.NewCarColorRouters(rootRouter, handler)
+	carColorRouters.RegisterRouter()
+
+	//car routers
+	carRouters := routers.NewCarRouters(rootRouter, handler)
+	carRouters.RegisterRouter()
 }

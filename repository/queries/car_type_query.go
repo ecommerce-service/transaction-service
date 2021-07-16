@@ -24,7 +24,7 @@ func (q CarTypeQuery) Browse(search, orderBy, sort string, limit, offset int) (i
 		return res, err
 	}
 	for rows.Next() {
-		temp, err := models.NewCarType().ScanRows(rows)
+		temp, err := models.NewCarTypeModel().ScanRows(rows)
 		if err != nil {
 			return res, err
 		}
@@ -43,7 +43,7 @@ func (q CarTypeQuery) BrowseAll(search, brandId string) (interface{}, error) {
 		return res, err
 	}
 	for rows.Next() {
-		temp, err := models.NewCarType().ScanRows(rows)
+		temp, err := models.NewCarTypeModel().ScanRows(rows)
 		if err != nil {
 			return res, err
 		}
@@ -57,7 +57,7 @@ func (q CarTypeQuery) ReadBy(column, operator string, value interface{}) (interf
 	statement := models.CarTypeSelectStatement + ` ` + models.CarTypeDefaultWhereStatement + ` AND ` + column + `` + operator + `$1`
 
 	row := q.db.QueryRow(statement, value)
-	res, err := models.NewCarType().ScanRow(row)
+	res, err := models.NewCarTypeModel().ScanRow(row)
 	if err != nil {
 		return res, err
 	}

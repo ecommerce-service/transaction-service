@@ -87,7 +87,7 @@ func (uc CarTypeUseCase) Edit(req *requests.CarTypeRequest, id string) (res stri
 		return res, errors.New(messages.DataAlreadyExist)
 	}
 
-	model := models.NewCarType().SetName(req.Name).SetBrandId(req.BrandID).SetUpdatedAt(now).SetId(id)
+	model := models.NewCarTypeModel().SetName(req.Name).SetBrandId(req.BrandID).SetUpdatedAt(now).SetId(id)
 	cmd := commands.NewCarTypeCommand(uc.Config.DB.GetDbInstance(), model)
 	res, err = cmd.Edit()
 	if err != nil {
@@ -111,7 +111,7 @@ func (uc CarTypeUseCase) Add(req *requests.CarTypeRequest) (res string, err erro
 		return res, errors.New(messages.DataAlreadyExist)
 	}
 
-	model := models.NewCarType().SetName(req.Name).SetBrandId(req.BrandID).SetCreatedAt(now).SetUpdatedAt(now)
+	model := models.NewCarTypeModel().SetName(req.Name).SetBrandId(req.BrandID).SetCreatedAt(now).SetUpdatedAt(now)
 	cmd := commands.NewCarTypeCommand(uc.Config.DB.GetDbInstance(), model)
 	res, err = cmd.Add()
 	if err != nil {
@@ -131,7 +131,7 @@ func (uc CarTypeUseCase) Delete(id string) (err error) {
 		return err
 	}
 	if count > 0 {
-		model := models.NewCarType().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
+		model := models.NewCarTypeModel().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
 		cmd := commands.NewCarTypeCommand(uc.Config.DB.GetDbInstance(), model)
 		_, err = cmd.Delete()
 		if err != nil {
