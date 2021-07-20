@@ -26,7 +26,7 @@ func (uc CartUseCase) GetListWithPagination(search, orderBy, sort string, page, 
 	q := queries.NewCartQuery(uc.Config.DB)
 	offset, limit, page, orderBy, sort := uc.SetPaginationParameter(page, limit, orderBy, sort)
 
-	cart, err := q.Browse(search, orderBy, sort, uc.UserID, limit, offset)
+	cart, err := q.BrowseByUser(search, orderBy, sort, uc.UserID, limit, offset)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-cart-browse")
 		return res, pagination, err

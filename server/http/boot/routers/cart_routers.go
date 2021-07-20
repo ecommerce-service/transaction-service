@@ -21,9 +21,11 @@ func NewCartRouters(rootGroup fiber.Router, handler handlers.HandlerContract) IR
 func (r CartRouters) RegisterRouter() {
 	handler := handlers.NewCartHandler(r.Handler)
 	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
+	normalUserMiddleware := middlewares.NewRoleNormalUser(r.Handler.UseCaseContract)
 
 	cartRouters := r.RouteGroup.Group("/cart")
 	cartRouters.Use(jwt.Use)
+	cartRouters.Use(normalUserMiddleware.Use)
 	cartRouters.Get("", handler.GetListWithPagination)
 	cartRouters.Put("/quantity/:id", handler.EditQuantity)
 	cartRouters.Get("/:id", handler.GetByID)

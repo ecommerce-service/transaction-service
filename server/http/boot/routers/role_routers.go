@@ -21,9 +21,11 @@ func NewRoleRouters(routeGroup fiber.Router,handler handlers.HandlerContract) IR
 func (r RoleRouters) RegisterRouter() {
 	handler := handlers.NewRoleHandler(r.Handler)
 	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
+	adminMiddleware := middlewares.NewRoleAdminMiddleware(r.Handler.UseCaseContract)
 
 	roleRouters := r.RouteGroup.Group("/role")
 	roleRouters.Use(jwt.Use)
+	roleRouters.Use(adminMiddleware.Use)
 	roleRouters.Get("",handler.BrowseAll)
 }
 

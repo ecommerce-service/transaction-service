@@ -11,7 +11,7 @@ type CarQuery struct {
 	db *sql.DB
 }
 
-func NewCarQuery(db *sql.DB) queries.IBaseQuery {
+func NewCarQuery(db *sql.DB) queries.ICarQuery {
 	return &CarQuery{db: db}
 }
 

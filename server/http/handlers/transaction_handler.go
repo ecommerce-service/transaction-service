@@ -5,6 +5,7 @@ import (
 	"booking-car/domain/requests"
 	"booking-car/pkg/response"
 	"booking-car/usecases"
+	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -40,6 +41,7 @@ func (h TransactionHandler) GetListForNormalUserWithPagination(ctx *fiber.Ctx) (
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
 	transactionType := ctx.Query("transaction_type")
+	fmt.Println(h.UseCaseContract.RoleID)
 
 	uc := usecases.NewTransactionUseCase(h.UseCaseContract)
 	res, pagination, err := uc.GetListForNormalUserWithPagination(search, orderBy, sort, transactionType, page, limit)

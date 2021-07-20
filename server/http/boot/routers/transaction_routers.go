@@ -21,11 +21,20 @@ func NewTransactionRouters(routeGroup fiber.Router, handler handlers.HandlerCont
 func (r TransactionRoutes) RegisterRouter() {
 	handler := handlers.NewTransactionHandler(r.Handler)
 	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
+	adminMiddleware := middlewares.NewRoleAdminMiddleware(r.Handler.UseCaseContract)
+	normalUserMiddleware := middlewares.NewRoleNormalUser(r.Handler.UseCaseContract)
 
 	transactionRouters := r.RouteGroup.Group("/transaction")
 	transactionRouters.Use(jwt.Use)
-	transactionRouters.Get("/admin", handler.GetListForAdminWithPagination)
-	transactionRouters.Get("/user", handler.GetListForNormalUserWithPagination)
+
+	listAdminRouters := transactionRouters.Group("/admin")
+	listAdminRouters.Use(adminMiddleware.Use)
+	listAdminRouters.Get("", handler.GetListForAdminWithPagination)
+
+	listNormalUserRouters := transactionRouters.Group("/user")
+	listNormalUserRouters.Use(normalUserMiddleware.Use)
+	listNormalUserRouters.Get("", handler.GetListForNormalUserWithPagination)
+
 	transactionRouters.Put("/confirm/:id", handler.ConfirmPayment)
 	transactionRouters.Put("/cancel/:id", handler.CancelPayment)
 	transactionRouters.Get("/:id", handler.GetByID)

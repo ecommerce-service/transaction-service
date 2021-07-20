@@ -21,9 +21,11 @@ func NewCarBrandRouters(routeGroup fiber.Router, handler handlers.HandlerContrac
 func (r CarBrandRouters) RegisterRouter() {
 	handler := handlers.NewCarBrandHandler(r.Handler)
 	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
+	adminMiddleware := middlewares.NewRoleAdminMiddleware(r.Handler.UseCaseContract)
 
 	carBrandRouters := r.RouteGroup.Group("/car-brand")
 	carBrandRouters.Use(jwt.Use)
+	carBrandRouters.Use(adminMiddleware.Use)
 	carBrandRouters.Get("", handler.GetListWithPagination)
 	carBrandRouters.Get("/all", handler.GetAll)
 	carBrandRouters.Get("/:id", handler.GetByID)

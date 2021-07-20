@@ -11,7 +11,7 @@ type CarBrandQuery struct {
 	db *sql.DB
 }
 
-func NewCarBrandQuery(db *sql.DB) queries.IBrandQuery {
+func NewCarBrandQuery(db *sql.DB) queries.ICarBrandQuery {
 	return &CarBrandQuery{db: db}
 }
 

@@ -4,7 +4,6 @@ import (
 	"booking-car/domain/models"
 	"booking-car/domain/queries"
 	"database/sql"
-	"fmt"
 	"strings"
 )
 
@@ -32,7 +31,6 @@ func (q CarColorQuery) Browse(search, orderBy, sort string, limit, offset int) (
 		}
 		res = append(res, temp.(*models.CarColors))
 	}
-	fmt.Println(res)
 
 	return res, nil
 }

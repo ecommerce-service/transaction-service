@@ -1,7 +1,7 @@
 package queries
 
 type ICartQuery interface {
-	Browse(search, orderBy, sort, userId string, limit, offset int) (interface{}, error)
+	BrowseByUser(search, orderBy, sort, userId string, limit, offset int) (interface{}, error)
 
 	BrowseAllByUser(userId string) (interface{}, error)
 

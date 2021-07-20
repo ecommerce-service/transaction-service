@@ -21,9 +21,11 @@ func NewUserRouters(routeGroup fiber.Router, handler handlers.HandlerContract) I
 func (r UserRouters) RegisterRouter() {
 	handler := handlers.NewUserHandler(r.Handler)
 	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
+	adminMiddleware := middlewares.NewRoleAdminMiddleware(r.Handler.UseCaseContract)
 
 	userRouters := r.RouteGroup.Group("/user")
 	userRouters.Use(jwt.Use)
+	userRouters.Use(adminMiddleware.Use)
 	userRouters.Get("", handler.GetListWithPagination)
 	userRouters.Get("/current",handler.GetCurrentUser)
 	userRouters.Get("/:id", handler.GetByID)

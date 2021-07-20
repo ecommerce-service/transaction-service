@@ -31,7 +31,7 @@ func (h AuthenticationHandler) Login(ctx *fiber.Ctx) error {
 	uc := usecases.NewAuthenticationUseCase(h.UseCaseContract)
 	res, err := uc.Login(req)
 
-	return response.NewResponse(response.NewResponseWithOutMeta(res, err, http.StatusUnauthorized)).Send(ctx)
+	return response.NewResponse(response.NewResponseWithOutMeta(res, err, http.StatusOK)).Send(ctx)
 }
 
 func (h AuthenticationHandler) Register(ctx *fiber.Ctx) error {
@@ -47,5 +47,5 @@ func (h AuthenticationHandler) Register(ctx *fiber.Ctx) error {
 	uc := usecases.NewAuthenticationUseCase(h.UseCaseContract)
 	err := uc.Registration(req)
 
-	return response.NewResponse(response.NewResponseWithOutMeta(nil, err, http.StatusUnauthorized)).Send(ctx)
+	return response.NewResponse(response.NewResponseWithOutMeta(nil, err, http.StatusOK)).Send(ctx)
 }

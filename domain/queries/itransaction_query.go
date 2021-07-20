@@ -7,8 +7,6 @@ type ITransactionQuery interface {
 
 	Count(search, userID, transactionType string) (res int, err error)
 
-	CountBy(column, operator string, value interface{}) (res int, err error)
-
 	CountAll() (res int, err error)
 
 	BrowseByUserId(search, orderBy, sort, userId, transactionType string, limit, offset int) (interface{}, error)

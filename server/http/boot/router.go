@@ -11,6 +11,7 @@ import (
 func (boot *Boot) RegisterAllRouters() {
 	handler := handlers.HandlerContract{
 		UseCaseContract: usecases.NewUseCaseContract(xid.New().String(), boot.Config),
+		App: boot.App,
 	}
 
 	//init route group
