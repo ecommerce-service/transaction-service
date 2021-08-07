@@ -1,9 +1,9 @@
 package commands
 
 import (
-	"booking-car/domain/commands"
-	"booking-car/domain/models"
-	"booking-car/pkg/postgresql"
+	"github.com/ecommerce-service/transaction-service/domain/commands"
+	"github.com/ecommerce-service/transaction-service/domain/models"
+	"github.com/thel5coder/pkg/postgresql"
 )
 
 type TransactionCommand struct {
@@ -19,10 +19,11 @@ func NewTransactionCommand(db postgresql.IConnection, model *models.Transactions
 }
 
 func (c TransactionCommand) Add() (res string, err error) {
-	statement := `INSERT INTO transactions (user_id,transaction_type,transaction_number,total_amount,created_at,updated_at) ` +
-		`VALUES($1,$2,$3,$4,$5,$6) RETURNING id`
+	statement := `INSERT INTO transactions ` +
+		`(user_id,transaction_number,status,total,discount,created_at,updated_at) ` +
+		`VALUES($1,$2,$3,$4,$5,$6,$7) RETURNING id`
 
-	err = c.db.GetTx().QueryRow(statement, c.model.UserId(), c.model.TransactionType(), c.model.TransactionNumber(), c.model.TotalAmount(),
+	err = c.db.GetTx().QueryRow(statement, c.model.UserId(), c.model.TransactionNumber(), c.model.Status(), c.model.Total(), c.model.Discount(),
 		c.model.CreatedAt(), c.model.UpdatedAt()).Scan(&res)
 	if err != nil {
 		return res, err
@@ -32,9 +33,9 @@ func (c TransactionCommand) Add() (res string, err error) {
 }
 
 func (c TransactionCommand) EditPaymentReceived() (err error) {
-	statement := `UPDATE transactions set transaction_type=$1,payment_received=$2,updated_at=$3,paid_at=$4 WHERE id=$5`
+	statement := `UPDATE transactions set updated_at=$1,paid_at=$2 WHERE id=$3`
 
-	_, err = c.db.GetTx().Exec(statement, c.model.TransactionType(), c.model.PaymentReceived().Float64, c.model.UpdatedAt(), c.model.PaidAt().Time, c.model.Id())
+	_, err = c.db.GetTx().Exec(statement, c.model.UpdatedAt(), c.model.PaidAt().Time, c.model.Id())
 	if err != nil {
 		return err
 	}
@@ -43,9 +44,9 @@ func (c TransactionCommand) EditPaymentReceived() (err error) {
 }
 
 func (c TransactionCommand) EditCancelPayment() (res string, err error) {
-	statement := `UPDATE transactions set transaction_type=$1,updated_at=$2,canceled_at=$3 WHERE id=$4 RETURNING id`
+	statement := `UPDATE transactions set status=$1,updated_at=$2,canceled_at=$3 WHERE id=$4 RETURNING id`
 
-	err = c.db.GetDbInstance().QueryRow(statement, c.model.TransactionType(), c.model.UpdatedAt(), c.model.CanceledAt().Time, c.model.Id()).Scan(&res)
+	err = c.db.GetDbInstance().QueryRow(statement, c.model.Status(),c.model.UpdatedAt(), c.model.CanceledAt().Time, c.model.Id()).Scan(&res)
 	if err != nil {
 		return res, err
 	}

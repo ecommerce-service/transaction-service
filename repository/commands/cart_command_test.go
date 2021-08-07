@@ -1,37 +1,44 @@
 package commands
 
 import (
-	"booking-car/domain/models"
-	"booking-car/pkg/postgresql"
 	"database/sql"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/brianvoe/gofakeit/v6"
+	"github.com/ecommerce-service/transaction-service/domain/models"
 	"github.com/stretchr/testify/assert"
-	"strconv"
+	"github.com/thel5coder/pkg/postgresql"
 	"testing"
 	"time"
 )
 
 func TestAddCart(t *testing.T) {
-	db, mock := NewMock()
-	con := postgresql.NewConnection(&postgresql.Config{})
-	con.SetDb(db)
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
 	defer func() {
 		db.Close()
 	}()
 
 	now := time.Now().UTC()
-	model := models.NewCartModel().SetUserId(gofakeit.UUID()).SetCarId(gofakeit.UUID()).SetCarBrand(gofakeit.Car().Brand).SetCarType(gofakeit.Car().Type).
-		SetCarColor(gofakeit.HexColor()).SetProductionYear(strconv.Itoa(gofakeit.Car().Year)).SetPrice(gofakeit.Price(100000000, 150000000)).
-		SetQuantity(int(gofakeit.Int8())).SetSubTotal(gofakeit.Price(100000000, 150000000)).SetCreatedAt(now).SetUpdatedAt(now)
+	model := models.NewCartModel().
+		SetUserId(gofakeit.UUID()).
+		SetProductId(gofakeit.UUID()).
+		SetName(gofakeit.Name()).
+		SetSku(gofakeit.UUID()).
+		SetCategory("{\n\t\tType:     \"Ini jso\",\n\t\tRowCount: 0,\n\t\tFields:   nil,\n\t\tIndent:   false,\n\t}").
+		SetPrice(gofakeit.Price(100000000, 150000000)).
+		SetQuantity(gofakeit.Int64()).
+		SetSubTotal(gofakeit.Price(100000000, 150000000)).
+		SetCreatedAt(now).
+		SetUpdatedAt(now)
 	id := gofakeit.UUID()
 
-	cmd := NewCartCommand(con, model)
+	cmd := NewCartCommand(conn, model)
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
-	statement := `INSERT INTO carts(user_id,car_id,car_brand,car_type,car_color,production_year,price,quantity,sub_total,created_at,updated_at) ` +
-		`VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`
-	mock.ExpectQuery(statement).WithArgs(model.UserId(), model.CarId(), model.CarBrand(), model.CarType(), model.CarColor(), model.ProductionYear(),
-		model.Price(), model.Quantity(), model.SubTotal(), model.CreatedAt(), model.UpdatedAt()).WillReturnRows(rows)
+	statement := `INSERT INTO carts(user_id,product_id,name,sku,category,price,quantity,sub_total,created_at,updated_at) ` +
+		`VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`
+	mock.ExpectQuery(statement).WithArgs(model.UserId(), model.ProductId(), model.Name(), model.Sku(), model.Category(), model.Price(), model.Quantity(), model.SubTotal(),
+		model.CreatedAt(), model.UpdatedAt()).WillReturnRows(rows)
 	res, err := cmd.Add()
 
 	assert.NoError(t, err)
@@ -39,23 +46,31 @@ func TestAddCart(t *testing.T) {
 }
 
 func TestAddCartError(t *testing.T) {
-	db, mock := NewMock()
-	con := postgresql.NewConnection(&postgresql.Config{})
-	con.SetDb(db)
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
 	defer func() {
 		db.Close()
 	}()
 
 	now := time.Now().UTC()
-	model := models.NewCartModel().SetCarBrand(gofakeit.Car().Brand).SetCarType(gofakeit.Car().Type).
-		SetCarColor(gofakeit.HexColor()).SetProductionYear(strconv.Itoa(gofakeit.Car().Year)).SetPrice(gofakeit.Price(100000000, 150000000)).
-		SetQuantity(int(gofakeit.Int8())).SetSubTotal(gofakeit.Price(100000000, 150000000)).SetCreatedAt(now).SetUpdatedAt(now)
+	model := models.NewCartModel().
+		SetUserId(gofakeit.UUID()).
+		SetProductId(gofakeit.UUID()).
+		SetName(gofakeit.Name()).
+		SetSku(gofakeit.UUID()).
+		SetCategory("{\n\t\tType:     \"Ini jso\",\n\t\tRowCount: 0,\n\t\tFields:   nil,\n\t\tIndent:   false,\n\t}").
+		SetPrice(gofakeit.Price(100000000, 150000000)).
+		SetQuantity(gofakeit.Int64()).
+		SetSubTotal(gofakeit.Price(100000000, 150000000)).
+		SetCreatedAt(now).
+		SetUpdatedAt(now)
 
-	cmd := NewCartCommand(con, model)
-	statement := `INSERT INTO carts(user_id,car_id,car_brand,car_type,car_color,production_year,price,quantity,sub_total,created_at,updated_at) ` +
-		`VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id`
-	mock.ExpectQuery(statement).WithArgs(model.UserId(), model.CarId(), model.CarBrand(), model.CarType(), model.CarColor(), model.ProductionYear(),
-		model.Price(), model.Quantity(), model.SubTotal(), model.CreatedAt(), model.UpdatedAt()).WillReturnError(sql.ErrNoRows)
+	cmd := NewCartCommand(conn, model)
+	statement := `INSERT INTO carts(user_id,product_id,name,sku,category,price,quantity,sub_total,created_at,updated_at) ` +
+		`VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id`
+	mock.ExpectQuery(statement).WithArgs(model.UserId(), model.ProductId(), model.Name(), model.Sku(), model.Category(), model.Price(), model.Quantity(), model.SubTotal(),
+		model.CreatedAt(), model.UpdatedAt()).WillReturnError(sql.ErrNoRows)
 	res, err := cmd.Add()
 
 	assert.Error(t, err)
@@ -63,24 +78,25 @@ func TestAddCartError(t *testing.T) {
 }
 
 func TestEditCart(t *testing.T) {
-	db, mock := NewMock()
-	con := postgresql.NewConnection(&postgresql.Config{})
-	con.SetDb(db)
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
 	defer func() {
 		db.Close()
 	}()
 
 	now := time.Now().UTC()
 	id := gofakeit.UUID()
-	model := models.NewCartModel().SetCarId(gofakeit.UUID()).SetCarBrand(gofakeit.Car().Brand).SetCarType(gofakeit.Car().Type).
-		SetCarColor(gofakeit.HexColor()).SetProductionYear(strconv.Itoa(gofakeit.Car().Year)).SetPrice(gofakeit.Price(100000000, 150000000)).
-		SetQuantity(int(gofakeit.Int8())).SetSubTotal(gofakeit.Price(100000000, 150000000)).SetCreatedAt(now).SetUpdatedAt(now).SetId(id)
+	model := models.NewCartModel().
+		SetId(id).
+		SetQuantity(gofakeit.Int64()).
+		SetSubTotal(gofakeit.Price(100000000, 150000000)).
+		SetUpdatedAt(now)
 
-	cmd := NewCartCommand(con, model)
+	cmd := NewCartCommand(conn, model)
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
-	statement := `UPDATE carts SET car_id=$1,car_brand=$2,car_type=$3,car_color=$4,production_year=$5,price=$6,quantity=$7,sub_total=$8,updated_at=$9 WHERE id=$10 RETURNING id`
-	mock.ExpectQuery(statement).WithArgs(model.CarId(), model.CarBrand(), model.CarType(), model.CarColor(), model.ProductionYear(), model.Price(), model.Quantity(),
-		model.SubTotal(), model.UpdatedAt(), model.Id()).WillReturnRows(rows)
+	statement := `UPDATE carts SET quantity=$1,sub_total=$2,updated_at=$3 WHERE id=$4 RETURNING id`
+	mock.ExpectQuery(statement).WithArgs(model.Quantity(), model.SubTotal(), model.UpdatedAt(), model.Id()).WillReturnRows(rows)
 	res, err := cmd.Edit()
 
 	assert.NoError(t, err)
@@ -88,22 +104,22 @@ func TestEditCart(t *testing.T) {
 }
 
 func TestEditCartError(t *testing.T) {
-	db, mock := NewMock()
-	con := postgresql.NewConnection(&postgresql.Config{})
-	con.SetDb(db)
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
 	defer func() {
 		db.Close()
 	}()
 
 	now := time.Now().UTC()
-	model := models.NewCartModel().SetCarId(gofakeit.UUID()).SetCarBrand(gofakeit.Car().Brand).SetCarType(gofakeit.Car().Type).
-		SetCarColor(gofakeit.HexColor()).SetProductionYear(strconv.Itoa(gofakeit.Car().Year)).SetPrice(gofakeit.Price(100000000, 150000000)).
-		SetQuantity(int(gofakeit.Int8())).SetSubTotal(gofakeit.Price(100000000, 150000000)).SetCreatedAt(now).SetUpdatedAt(now)
+	model := models.NewCartModel().
+		SetQuantity(gofakeit.Int64()).
+		SetSubTotal(gofakeit.Price(100000000, 150000000)).
+		SetUpdatedAt(now)
 
-	cmd := NewCartCommand(con, model)
-	statement := `UPDATE carts SET car_id=$1,car_brand=$2,car_type=$3,car_color=$4,production_year=$5,price=$6,quantity=$7,sub_total=$8,updated_at=$9 WHERE id=$10 RETURNING id`
-	mock.ExpectQuery(statement).WithArgs(model.CarId(), model.CarBrand(), model.CarType(), model.CarColor(), model.ProductionYear(), model.Price(), model.Quantity(),
-		model.SubTotal(), model.UpdatedAt(), model.Id()).WillReturnError(sql.ErrNoRows)
+	cmd := NewCartCommand(conn, model)
+	statement := `UPDATE carts SET quantity=$1,sub_total=$2,updated_at=$3 WHERE id=$4 RETURNING id`
+	mock.ExpectQuery(statement).WithArgs(model.Quantity(), model.SubTotal(), model.UpdatedAt(), model.Id()).WillReturnError(sql.ErrNoRows)
 	res, err := cmd.Edit()
 
 	assert.Error(t, err)
@@ -111,18 +127,18 @@ func TestEditCartError(t *testing.T) {
 }
 
 func TestDeleteCart(t *testing.T) {
-	db, mock := NewMock()
-	con := postgresql.NewConnection(&postgresql.Config{})
-	con.SetDb(db)
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
 	defer func() {
 		db.Close()
 	}()
 
 	now := time.Now().UTC()
 	id := gofakeit.UUID()
-	model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
+	model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(sql.NullTime{Time: now, Valid: true}).SetId(id)
 
-	cmd := NewCartCommand(con, model)
+	cmd := NewCartCommand(conn, model)
 	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
 	statement := `UPDATE carts SET updated_at=$1,deleted_at=$2 WHERE id=$3 RETURNING id`
 	mock.ExpectQuery(statement).WithArgs(model.UpdatedAt(), model.DeletedAt().Time, model.Id()).WillReturnRows(rows)
@@ -133,19 +149,61 @@ func TestDeleteCart(t *testing.T) {
 }
 
 func TestDeleteCartError(t *testing.T) {
-	db, mock := NewMock()
-	con := postgresql.NewConnection(&postgresql.Config{})
-	con.SetDb(db)
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
 	defer func() {
 		db.Close()
 	}()
 
 	now := time.Now().UTC()
-	model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(now)
+	model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(sql.NullTime{Time: now, Valid: true})
 
-	cmd := NewCartCommand(con, model)
+	cmd := NewCartCommand(conn, model)
 	statement := `UPDATE carts SET updated_at=$1,deleted_at=$2 WHERE id=$3 RETURNING id`
 	mock.ExpectQuery(statement).WithArgs(model.UpdatedAt(), model.DeletedAt().Time, model.Id()).WillReturnError(sql.ErrNoRows)
+	res, err := cmd.Delete()
+
+	assert.Error(t, err)
+	assert.Empty(t, res)
+}
+
+func TestDeleteAllByUserID(t *testing.T) {
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
+	defer func() {
+		db.Close()
+	}()
+
+	now := time.Now().UTC()
+	id := gofakeit.UUID()
+	model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(sql.NullTime{Time: now, Valid: true}).SetUserId(id)
+
+	cmd := NewCartCommand(conn, model)
+	rows := sqlmock.NewRows([]string{"id"}).AddRow(id)
+	statement := `UPDATE carts SET updated_at=$1,deleted_at=$2 WHERE user_id=$3 RETURNING id`
+	mock.ExpectQuery(statement).WithArgs(model.UpdatedAt(), model.DeletedAt().Time, model.UserId()).WillReturnRows(rows)
+	res, err := cmd.Delete()
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, res)
+}
+
+func TestDeleteAllByUserIDError(t *testing.T) {
+	_, mock := NewMock()
+	conn, _ := postgresql.NewConnectionMock().Connect()
+	db := conn.GetDbInstance()
+	defer func() {
+		db.Close()
+	}()
+
+	now := time.Now().UTC()
+	model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(sql.NullTime{Time: now, Valid: true})
+
+	cmd := NewCartCommand(conn, model)
+	statement := `UPDATE carts SET updated_at=$1,deleted_at=$2 WHERE user_id=$3 RETURNING id`
+	mock.ExpectQuery(statement).WithArgs(model.UpdatedAt(), model.DeletedAt().Time, model.UserId()).WillReturnError(sql.ErrNoRows)
 	res, err := cmd.Delete()
 
 	assert.Error(t, err)

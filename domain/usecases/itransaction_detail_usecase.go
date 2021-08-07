@@ -1,6 +1,6 @@
 package usecases
 
-import "booking-car/domain/requests"
+import "github.com/ecommerce-service/transaction-service/domain/requests"
 
 type ITransactionDetailUseCase interface {
 

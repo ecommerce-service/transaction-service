@@ -1,36 +1,36 @@
 package view_models
 
 import (
-	"booking-car/domain/models"
+	"github.com/ecommerce-service/transaction-service/domain/models"
 	"time"
 )
 
 type CartVm struct {
-	ID             string  `json:"id"`
-	CarID          string  `json:"car_id"`
-	CarBrand       string  `json:"car_brand"`
-	CarType        string  `json:"car_type"`
-	CarColor       string  `json:"car_color"`
-	ProductionYear string  `json:"production_year"`
-	Price          float64 `json:"price"`
-	Quantity       int     `json:"quantity"`
-	SubTotal       float64 `json:"sub_total"`
-	CreatedAt      string  `json:"created_at"`
-	UpdatedAt      string  `json:"updated_at"`
+	ID        string  `json:"id"`
+	UserID    string  `json:"user_id"`
+	ProductID string  `json:"product_id"`
+	Name      string  `json:"name"`
+	Sku       string  `json:"sku"`
+	Category  string  `json:"category"`
+	Price     float64 `json:"price"`
+	Quantity  int64   `json:"quantity"`
+	SubTotal  float64 `json:"sub_total"`
+	CreatedAt string  `json:"created_at"`
+	UpdatedAt string  `json:"updated_at"`
 }
 
 func NewCartVm(model *models.Carts) CartVm {
 	return CartVm{
-		ID:             model.Id(),
-		CarID:          model.CarId(),
-		CarBrand:       model.CarBrand(),
-		CarType:        model.CarType(),
-		CarColor:       model.CarColor(),
-		ProductionYear: model.ProductionYear(),
-		Price:          model.Price(),
-		Quantity:       model.Quantity(),
-		SubTotal:       model.SubTotal(),
-		CreatedAt:      model.CreatedAt().Format(time.RFC3339),
-		UpdatedAt:      model.UpdatedAt().Format(time.RFC3339),
+		ID:        model.Id(),
+		UserID:    model.UserId(),
+		ProductID: model.ProductId(),
+		Name:      model.Name(),
+		Sku:       model.Sku(),
+		Category:  model.Category(),
+		Price:     model.Price(),
+		Quantity:  model.Quantity(),
+		SubTotal:  model.SubTotal(),
+		CreatedAt: model.CreatedAt().Format(time.RFC3339),
+		UpdatedAt: model.UpdatedAt().Format(time.RFC3339),
 	}
 }

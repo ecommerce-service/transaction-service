@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"booking-car/domain/requests"
-	"booking-car/domain/view_models"
+	"github.com/ecommerce-service/transaction-service/domain/requests"
+	"github.com/ecommerce-service/transaction-service/domain/view_models"
 )
 
 type ICartUseCase interface {
@@ -15,8 +15,6 @@ type ICartUseCase interface {
 	GetBy(column, operator string, value interface{}) (res view_models.CartVm, err error)
 
 	Edit(req *requests.CartRequest, id string) (res string, err error)
-
-	EditQuantity(req *requests.CartEditQuantityRequest, id string) (res string, err error)
 
 	Add(req *requests.CartRequest) (res string, err error)
 

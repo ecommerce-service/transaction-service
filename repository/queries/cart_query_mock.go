@@ -1,22 +1,20 @@
 package queries
 
 import (
-	"booking-car/domain/models"
 	"database/sql"
-	"strings"
+	"github.com/ecommerce-service/transaction-service/domain/models"
 )
 
 type CartQueryMock struct{
 	db *sql.DB
 }
 
-func (q CartQueryMock) BrowseByUser(search, orderBy, sort, userId string, limit, offset int) (interface{}, error) {
+func (q CartQueryMock) BrowseByUser(_, orderBy, sort, userId string, limit, offset int) (interface{}, error) {
 	var res []*models.Carts
-	statement := models.CartSelectStatement + ` ` + models.CartJoinStatement + ` ` + models.CartDefaultWhereStatement + ` AND c.user_id=$1 AND ` +
-		`(LOWER(c.car_brand) LIKE $2 OR LOWER(c.car_type) LIKE $2 OR LOWER(c.car_color) LIKE $2) ` +
-		`ORDER BY ` + orderBy + ` ` + sort + ` LIMIT $3 OFFSET $4`
+	statement := models.CartSelectStatement + models.CartDefaultWhereStatement + ` AND c.user_id=$1 AND ` +
+		`ORDER BY ` + orderBy + ` ` + sort + ` LIMIT $2 OFFSET $3`
 
-	rows, err := q.db.Query(statement, userId, "%"+strings.ToLower(search)+"%", limit, offset)
+	rows, err := q.db.Query(statement, userId, limit, offset)
 	if err != nil {
 		return res, err
 	}
@@ -34,7 +32,7 @@ func (q CartQueryMock) BrowseByUser(search, orderBy, sort, userId string, limit,
 
 func (q CartQueryMock) BrowseAllByUser(userId string) (interface{}, error) {
 	var res []*models.Carts
-	statement := models.CartSelectStatement + ` ` + models.CartJoinStatement + ` ` + models.CartDefaultWhereStatement + ` AND c.user_id=$1`
+	statement := models.CartSelectStatement + models.CartDefaultWhereStatement + ` AND c.user_id=$1`
 
 	rows, err := q.db.Query(statement, userId)
 	if err != nil {
@@ -53,7 +51,7 @@ func (q CartQueryMock) BrowseAllByUser(userId string) (interface{}, error) {
 }
 
 func (q CartQueryMock) ReadBy(column, operator, userId string, value interface{}) (interface{}, error) {
-	statement := models.CartSelectStatement + ` ` + models.CartJoinStatement + ` ` + models.CartDefaultWhereStatement + ` AND c.user_id=$1 AND ` + column + `` + operator + `$2`
+	statement := models.CartSelectStatement + models.CartDefaultWhereStatement + ` AND c.user_id=$1 AND ` + column + `` + operator + `$2`
 
 	row := q.db.QueryRow(statement, userId, value)
 	res, err := models.NewCartModel().ScanRow(row)
@@ -64,11 +62,10 @@ func (q CartQueryMock) ReadBy(column, operator, userId string, value interface{}
 	return res, nil
 }
 
-func (q CartQueryMock) Count(search, userId string) (res int, err error) {
-	statement := models.CartCountSelectStatement + ` ` + models.CartJoinStatement + ` ` + models.CartDefaultWhereStatement + ` AND c.user_id=$1 AND ` +
-		`(LOWER(c.car_brand) LIKE $2 OR LOWER(c.car_type) LIKE $2 OR LOWER(c.car_color) LIKE $2)`
+func (q CartQueryMock) Count(_, userId string) (res int, err error) {
+	statement := models.CartCountSelectStatement + models.CartDefaultWhereStatement + ` AND c.user_id=$1 `
 
-	err = q.db.QueryRow(statement, userId,"%"+strings.ToLower(search)+"%").Scan(&res)
+	err = q.db.QueryRow(statement, userId).Scan(&res)
 	if err != nil {
 		return res, err
 	}

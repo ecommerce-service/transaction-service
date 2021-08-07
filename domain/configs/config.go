@@ -1,12 +1,12 @@
 package configs
 
 import (
-	"booking-car/pkg/jwe"
-	"booking-car/pkg/jwt"
-	"booking-car/pkg/postgresql"
-	"booking-car/pkg/redis"
-	"booking-car/pkg/str"
-	"booking-car/pkg/validator"
+	"github.com/thel5coder/pkg/jwe"
+	"github.com/thel5coder/pkg/jwt"
+	"github.com/thel5coder/pkg/postgresql"
+	"github.com/thel5coder/pkg/redis"
+	"github.com/thel5coder/pkg/str"
+	"github.com/thel5coder/pkg/validator"
 	"os"
 )
 

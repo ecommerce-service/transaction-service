@@ -1,17 +1,15 @@
 package usecases
 
 import (
-	"booking-car/domain/models"
-	"booking-car/domain/requests"
-	"booking-car/domain/usecases"
-	"booking-car/domain/view_models"
-	"booking-car/pkg/functioncaller"
-	"booking-car/pkg/logruslogger"
-	"booking-car/pkg/messages"
-	"booking-car/repository/commands"
-	"booking-car/repository/queries"
-	"errors"
 	"fmt"
+	"github.com/ecommerce-service/transaction-service/domain/models"
+	"github.com/ecommerce-service/transaction-service/domain/requests"
+	"github.com/ecommerce-service/transaction-service/domain/usecases"
+	"github.com/ecommerce-service/transaction-service/domain/view_models"
+	"github.com/ecommerce-service/transaction-service/repository/commands"
+	"github.com/ecommerce-service/transaction-service/repository/queries"
+	"github.com/thel5coder/pkg/functioncaller"
+	"github.com/thel5coder/pkg/logruslogger"
 	"time"
 )
 
@@ -23,11 +21,11 @@ func NewTransactionUseCase(useCaseContract *UseCaseContract) usecases.ITransacti
 	return &TransactionUseCase{UseCaseContract: useCaseContract}
 }
 
-func (uc TransactionUseCase) GetListForAdminWithPagination(search, orderBy, sort, transactionType string, page, limit int) (res []view_models.TransactionListVm, pagination view_models.PaginationVm, err error) {
+func (uc TransactionUseCase) GetListForAdminWithPagination(search, orderBy, sort, status string, page, limit int) (res []view_models.TransactionListVm, pagination view_models.PaginationVm, err error) {
 	q := queries.NewTransactionQuery(uc.Config.DB)
 	offset, limit, page, orderBy, sort := uc.SetPaginationParameter(page, limit, orderBy, sort)
 
-	transactions, err := q.Browse(search, orderBy, sort, transactionType, limit, offset)
+	transactions, err := q.Browse(search, orderBy, sort, status, limit, offset)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-transaction-browse")
 		return res, pagination, err
@@ -37,7 +35,7 @@ func (uc TransactionUseCase) GetListForAdminWithPagination(search, orderBy, sort
 	}
 
 	//set pagination
-	totalCount, err := uc.Count(search, "", transactionType)
+	totalCount, err := uc.Count(search, "", status)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-transaction-count")
 		return res, pagination, err
@@ -47,11 +45,11 @@ func (uc TransactionUseCase) GetListForAdminWithPagination(search, orderBy, sort
 	return res, pagination, nil
 }
 
-func (uc TransactionUseCase) GetListForNormalUserWithPagination(search, orderBy, sort, transactionType string, page, limit int) (res []view_models.TransactionListVm, pagination view_models.PaginationVm, err error) {
+func (uc TransactionUseCase) GetListForNormalUserWithPagination(search, orderBy, sort, status string, page, limit int) (res []view_models.TransactionListVm, pagination view_models.PaginationVm, err error) {
 	q := queries.NewTransactionQuery(uc.Config.DB)
 	offset, limit, page, orderBy, sort := uc.SetPaginationParameter(page, limit, orderBy, sort)
 
-	transactions, err := q.BrowseByUserId(search, orderBy, sort, uc.UserID, transactionType, limit, offset)
+	transactions, err := q.BrowseByUserId(search, orderBy, sort, uc.UserID, status, limit, offset)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-transaction-browse")
 		return res, pagination, err
@@ -61,7 +59,7 @@ func (uc TransactionUseCase) GetListForNormalUserWithPagination(search, orderBy,
 	}
 
 	//set pagination
-	totalCount, err := uc.Count(search, uc.UserID, transactionType)
+	totalCount, err := uc.Count(search, uc.UserID, status)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-transaction-count")
 		return res, pagination, err
@@ -87,7 +85,7 @@ func (uc TransactionUseCase) GetByID(id string) (res view_models.TransactionDeta
 func (uc TransactionUseCase) CancelPayment(id string) (res string, err error) {
 	now := time.Now().UTC()
 
-	model := models.NewTransactionModel().SetId(id).SetTransactionType(CancelTransactionType).SetCanceledAt(now).SetUpdatedAt(now)
+	model := models.NewTransactionModel().SetId(id).SetStatus(CancelTransactionType).SetCanceledAt(now).SetUpdatedAt(now)
 	cmd := commands.NewTransactionCommand(uc.Config.DB, model)
 	res, err = cmd.EditCancelPayment()
 	if err != nil {
@@ -98,28 +96,10 @@ func (uc TransactionUseCase) CancelPayment(id string) (res string, err error) {
 	return res, nil
 }
 
-func (uc TransactionUseCase) ConfirmPayment(req *requests.ConfirmPaymentRequest, id string) (res string, err error) {
+func (uc TransactionUseCase) ConfirmPayment(id string) (res string, err error) {
 	now := time.Now().UTC()
 
-	transaction, err := uc.GetByID(id)
-	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-transaction-getById")
-		return res, err
-	}
-
-	carUc := NewCarUseCase(uc.UseCaseContract)
-	for _, transactionDetail := range transaction.Details {
-		car, err := carUc.GetByID(transactionDetail.CarID)
-		if err != nil {
-			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-car-getById")
-			return res, err
-		}
-		if car.Stock < transactionDetail.Quantity {
-			return res, errors.New(messages.NotEnoughStock)
-		}
-	}
-
-	model := models.NewTransactionModel().SetId(id).SetPaymentReceived(float64(req.PaymentAmount)).SetTransactionType(SuccessTransactionType).SetPaidAt(now).SetUpdatedAt(now)
+	model := models.NewTransactionModel().SetId(id).SetStatus(SuccessTransactionType).SetPaidAt(now).SetUpdatedAt(now)
 	cmd := commands.NewTransactionCommand(uc.Config.DB, model)
 	err = cmd.EditPaymentReceived()
 	if err != nil {
@@ -127,20 +107,6 @@ func (uc TransactionUseCase) ConfirmPayment(req *requests.ConfirmPaymentRequest,
 		return res, err
 	}
 	res = id
-
-	for _, transactionDetail := range transaction.Details {
-		err = carUc.EditStock(transactionDetail.CarID, transactionDetail.Quantity)
-		if err != nil {
-			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-car-editStock")
-			return res, err
-		}
-	}
-
-	if float64(req.PaymentAmount) > transaction.TotalAmount {
-		amount := float64(req.PaymentAmount) - transaction.TotalAmount
-		userUc := NewUserUseCase(uc.UseCaseContract)
-		err = userUc.AddDepositBalance(uc.UserID, amount)
-	}
 
 	return res, nil
 }
@@ -154,22 +120,11 @@ func (uc TransactionUseCase) Add() (res string, err error) {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-cart-getAllByUserId")
 		return res, err
 	}
-	carUc := NewCarUseCase(uc.UseCaseContract)
-	for _, cart := range carts {
-		car, err := carUc.GetByID(cart.CarID)
-		if err != nil {
-			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-car-getById")
-			return res, err
-		}
-		if car.Stock < cart.Quantity {
-			return res, errors.New(messages.NotEnoughStock)
-		}
-	}
 
 	totalAmount, transactionDetailRequest := uc.GetTotalAmountAndBuildTransactionDetailRequest(carts)
 	transactionNumber := uc.GetTransactionNumber()
-	model := models.NewTransactionModel().SetTransactionType(DefaultTransactionType).SetTransactionNumber(transactionNumber).
-		SetTotalAmount(totalAmount).SetCreatedAt(now).SetUpdatedAt(now).SetUserId(uc.UserID)
+	model := models.NewTransactionModel().SetStatus(DefaultTransactionType).SetTransactionNumber(transactionNumber).
+		SetTotal(totalAmount).SetCreatedAt(now).SetUpdatedAt(now).SetUserId(uc.UserID)
 	cmd := commands.NewTransactionCommand(uc.Config.DB, model)
 	res, err = cmd.Add()
 	if err != nil {
@@ -193,10 +148,10 @@ func (uc TransactionUseCase) Add() (res string, err error) {
 	return res, nil
 }
 
-func (uc TransactionUseCase) Count(search, userId, transactionType string) (res int, err error) {
+func (uc TransactionUseCase) Count(search, userId, status string) (res int, err error) {
 	q := queries.NewTransactionQuery(uc.Config.DB)
 
-	res, err = q.Count(search, userId, transactionType)
+	res, err = q.Count(search, userId, status)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-transaction-count")
 		return res, err
@@ -233,14 +188,13 @@ func (uc TransactionUseCase) GetTotalAmountAndBuildTransactionDetailRequest(cart
 	for _, cart := range carts {
 		totalAmount += cart.SubTotal
 		req = append(req, requests.TransactionDetailRequest{
-			CarID:          cart.CarID,
-			CarBrand:       cart.CarBrand,
-			CarType:        cart.CarType,
-			CarColor:       cart.CarColor,
-			ProductionYear: cart.ProductionYear,
-			Price:          cart.Price,
-			Quantity:       cart.Quantity,
-			SubTotal:       cart.SubTotal,
+			Name:     cart.Name,
+			Sku:      cart.Sku,
+			Category: cart.Category,
+			Price:    cart.Price,
+			Discount: 0,
+			Quantity: int(cart.Quantity),
+			SubTotal: cart.SubTotal,
 		})
 	}
 

@@ -1,18 +1,18 @@
 package view_models
 
 import (
-	"booking-car/domain/models"
+	"github.com/ecommerce-service/transaction-service/domain/models"
 	"strings"
 	"time"
 )
 
 type TransactionDetailVm struct {
 	ID                string                    `json:"id"`
-	TransactionType   string                    `json:"transaction_type"`
+	UserID            string                    `json:"user_id"`
 	TransactionNumber string                    `json:"transaction_number"`
-	TotalAmount       float64                   `json:"total_amount"`
-	PaymentReceived   float64                   `json:"payment_received"`
-	User              UserTransactionVm         `json:"user"`
+	Status            string                    `json:"status"`
+	Total             float64                   `json:"total"`
+	Discount          float64                   `json:"discount"`
 	Details           []TransactionDetailListVm `json:"details"`
 	CreatedAt         string                    `json:"created_at"`
 	UpdatedAt         string                    `json:"updated_at"`
@@ -30,11 +30,11 @@ func NewTransactionDetailVm(model *models.Transactions) TransactionDetailVm {
 
 	return TransactionDetailVm{
 		ID:                model.Id(),
-		TransactionType:   model.TransactionType(),
+		UserID:            model.UserId(),
 		TransactionNumber: model.TransactionNumber(),
-		TotalAmount:       model.TotalAmount(),
-		PaymentReceived:   model.PaymentReceived().Float64,
-		User:              NewUserTransactionVm(model.User.Id(), model.User.FirstName(), model.User.LastName(), model.User.Email(), model.User.PhoneNumber()),
+		Status:            model.Status(),
+		Total:             model.Total(),
+		Discount:          model.Discount().Float64,
 		Details:           transactionDetailListVm,
 		CreatedAt:         model.CreatedAt().Format(time.RFC3339),
 		UpdatedAt:         model.UpdatedAt().Format(time.RFC3339),

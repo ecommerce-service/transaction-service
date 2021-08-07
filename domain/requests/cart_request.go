@@ -1,6 +1,10 @@
 package requests
 
 type CartRequest struct {
-	CarID    string `json:"car_id" validate:"required"`
-	Quantity int    `json:"quantity" validate:"required"`
+	ProductID string  `json:"product_id" validate:"required"`
+	Name      string  `json:"name"`
+	Sku       string  `json:"sku"`
+	Category  string  `json:"category"`
+	Price     float64 `json:"price" validate:"required"`
+	Quantity  int64   `json:"quantity" validate:"required"`
 }

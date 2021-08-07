@@ -1,16 +1,15 @@
 package usecases
 
 import (
-	"booking-car/domain/models"
-	"booking-car/domain/requests"
-	"booking-car/domain/usecases"
-	"booking-car/domain/view_models"
-	"booking-car/pkg/functioncaller"
-	"booking-car/pkg/logruslogger"
-	"booking-car/pkg/messages"
-	"booking-car/repository/commands"
-	"booking-car/repository/queries"
-	"errors"
+	"database/sql"
+	"github.com/ecommerce-service/transaction-service/domain/models"
+	"github.com/ecommerce-service/transaction-service/domain/requests"
+	"github.com/ecommerce-service/transaction-service/domain/usecases"
+	"github.com/ecommerce-service/transaction-service/domain/view_models"
+	"github.com/ecommerce-service/transaction-service/repository/commands"
+	"github.com/ecommerce-service/transaction-service/repository/queries"
+	"github.com/thel5coder/pkg/functioncaller"
+	"github.com/thel5coder/pkg/logruslogger"
 	"time"
 )
 
@@ -77,59 +76,13 @@ func (uc CartUseCase) GetByID(id string) (res view_models.CartVm, err error) {
 func (uc CartUseCase) Edit(req *requests.CartRequest, id string) (res string, err error) {
 	now := time.Now().UTC()
 	model := models.NewCartModel()
-
-	carUc := NewCarUseCase(uc.UseCaseContract)
-	car, err := carUc.GetByID(req.CarID)
-	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-car-readByID")
-		return res, err
-	}
-	if car.Stock < req.Quantity {
-		logruslogger.Log(logruslogger.WarnLevel, messages.NotEnoughStock, functioncaller.PrintFuncName(), "uc-car-readByID")
-		return res, errors.New(messages.NotEnoughStock)
-	}
-
-	cart, err := uc.GetByID(id)
-	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-cart-getByID")
-		return res, err
-	}
-
-	if cart.CarID != req.CarID {
-		subTotal := float64(req.Quantity) * car.Price
-		model.SetCarId(req.CarID).SetCarBrand(car.CarBrand.Name).SetCarType(car.CarType.Name).SetCarColor(car.CarColor.Name).SetProductionYear(car.ProductionYear).
-			SetPrice(car.Price).SetQuantity(req.Quantity).SetSubTotal(subTotal).SetUpdatedAt(now).SetId(id)
-	} else {
-		subTotal := float64(req.Quantity) * cart.Price
-		model.SetCarId(req.CarID).SetCarBrand(cart.CarBrand).SetCarType(cart.CarType).SetCarColor(cart.CarColor).SetProductionYear(cart.ProductionYear).
-			SetPrice(cart.Price).SetQuantity(req.Quantity).SetSubTotal(subTotal).SetUpdatedAt(now).SetId(id)
-	}
+	subTotal := float64(req.Quantity) * req.Price
+	model.SetUserId(uc.UserID).SetProductId(req.ProductID).SetPrice(req.Price).SetQuantity(req.Quantity).SetSubTotal(subTotal).SetUpdatedAt(now).SetId(id)
 
 	cmd := commands.NewCartCommand(uc.Config.DB, model)
 	res, err = cmd.Edit()
 	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-car-edit")
-		return res, err
-	}
-
-	return res, nil
-}
-
-func (uc CartUseCase) EditQuantity(req *requests.CartEditQuantityRequest, id string) (res string, err error) {
-	now := time.Now().UTC()
-
-	cart, err := uc.GetByID(id)
-	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-cart-readByID")
-		return res, err
-	}
-
-	subTotal := float64(req.Quantity) * cart.Price
-	model := models.NewCartModel().SetQuantity(req.Quantity).SetSubTotal(subTotal).SetUpdatedAt(now).SetId(id)
-	cmd := commands.NewCartCommand(uc.Config.DB, model)
-	res, err = cmd.EditQuantity()
-	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-cart-editQuantity")
+		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-cart-edit")
 		return res, err
 	}
 
@@ -139,40 +92,29 @@ func (uc CartUseCase) EditQuantity(req *requests.CartEditQuantityRequest, id str
 func (uc CartUseCase) Add(req *requests.CartRequest) (res string, err error) {
 	now := time.Now().UTC()
 
-	carUc := NewCarUseCase(uc.UseCaseContract)
-	car, err := carUc.GetByID(req.CarID)
+	count, err := uc.CountBy("c.product_id", "=", req.ProductID)
 	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-car-readByID")
-		return res, err
-	}
-	if car.Stock < req.Quantity {
-		logruslogger.Log(logruslogger.WarnLevel, messages.NotEnoughStock, functioncaller.PrintFuncName(), "uc-car-readByID")
-		return res, errors.New(messages.NotEnoughStock)
-	}
-
-	count, err := uc.CountBy("c.car_id", "=", req.CarID)
-	if err != nil {
-		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-cart-countByCarId")
+		logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "query-cart-countByProductId")
 		return res, err
 	}
 
 	if count > 0 {
-		cart, err := uc.GetBy("c.car_id", "=", req.CarID)
+		cart, err := uc.GetBy("c.product_id", "=", req.ProductID)
 		if err != nil {
-			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-cart-getByCarId")
+			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-cart-getByProductId")
 			return res, err
 		}
 
-		editQuantityRequest := requests.CartEditQuantityRequest{Quantity: req.Quantity + cart.Quantity}
-		res, err = uc.EditQuantity(&editQuantityRequest, cart.ID)
+		editQuantityRequest := requests.CartRequest{Quantity: req.Quantity + cart.Quantity}
+		res, err = uc.Edit(&editQuantityRequest, cart.ID)
 		if err != nil {
 			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "uc-cart-editQuantity")
 			return res, err
 		}
 	} else {
-		subTotal := float64(req.Quantity) * car.Price
-		model := models.NewCartModel().SetUserId(uc.UserID).SetCarId(req.CarID).SetCarBrand(car.CarBrand.Name).SetCarType(car.CarType.Name).SetCarColor(car.CarColor.Name).
-			SetProductionYear(car.ProductionYear).SetPrice(car.Price).SetQuantity(req.Quantity).SetSubTotal(subTotal).SetCreatedAt(now).SetUpdatedAt(now)
+		subTotal := float64(req.Quantity) * req.Price
+		model := models.NewCartModel().SetUserId(uc.UserID).SetProductId(req.ProductID).SetName(req.Name).SetPrice(req.Price).SetQuantity(req.Quantity).SetSubTotal(subTotal).
+			SetSku(req.Sku).SetCategory(req.Category).SetCreatedAt(now).SetUpdatedAt(now)
 		cmd := commands.NewCartCommand(uc.Config.DB, model)
 		res, err = cmd.Add()
 		if err != nil {
@@ -193,7 +135,7 @@ func (uc CartUseCase) Delete(id string) (err error) {
 		return err
 	}
 	if count > 0 {
-		model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(now).SetId(id)
+		model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(sql.NullTime{Time: now, Valid: true}).SetId(id)
 		cmd := commands.NewCartCommand(uc.Config.DB, model)
 		_, err = cmd.Delete()
 		if err != nil {
@@ -215,9 +157,9 @@ func (uc CartUseCase) DeleteAllByUserId() (err error) {
 	}
 
 	if count > 0 {
-		model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(now).SetUserId(uc.UserID)
+		model := models.NewCartModel().SetUpdatedAt(now).SetDeletedAt(sql.NullTime{Time: now, Valid: true}).SetUserId(uc.UserID)
 		cmd := commands.NewCartCommand(uc.Config.DB, model)
-		err = cmd.DeleteAllByUserId()
+		err = cmd.DeleteAllByUserID()
 		if err != nil {
 			logruslogger.Log(logruslogger.WarnLevel, err.Error(), functioncaller.PrintFuncName(), "command-cart-deleteAllByUserId")
 			return err

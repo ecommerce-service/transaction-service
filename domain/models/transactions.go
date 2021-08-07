@@ -8,19 +8,16 @@ import (
 type Transactions struct {
 	id                string
 	userId            string
-	transactionType   string
 	transactionNumber string
-	totalAmount       float64
-	paymentReceived   sql.NullFloat64
+	status            string
+	total             float64
+	discount          sql.NullFloat64
 	createdAt         time.Time
 	updatedAt         time.Time
 	paidAt            sql.NullTime
 	canceledAt        sql.NullTime
 	deletedAt         sql.NullTime
-
 	transactionDetail string
-
-	User *Users
 }
 
 func NewTransactionModel() *Transactions {
@@ -47,16 +44,6 @@ func (model *Transactions) SetUserId(userId string) *Transactions {
 	return model
 }
 
-func (model *Transactions) TransactionType() string {
-	return model.transactionType
-}
-
-func (model *Transactions) SetTransactionType(transactionType string) *Transactions {
-	model.transactionType = transactionType
-
-	return model
-}
-
 func (model *Transactions) TransactionNumber() string {
 	return model.transactionNumber
 }
@@ -67,22 +54,32 @@ func (model *Transactions) SetTransactionNumber(transactionNumber string) *Trans
 	return model
 }
 
-func (model *Transactions) TotalAmount() float64 {
-	return model.totalAmount
+func (model *Transactions) Status() string {
+	return model.status
 }
 
-func (model *Transactions) SetTotalAmount(totalAmount float64) *Transactions {
-	model.totalAmount = totalAmount
+func (model *Transactions) SetStatus(status string) *Transactions {
+	model.status = status
 
 	return model
 }
 
-func (model *Transactions) PaymentReceived() sql.NullFloat64 {
-	return model.paymentReceived
+func (model *Transactions) Total() float64 {
+	return model.total
 }
 
-func (model *Transactions) SetPaymentReceived(paymentReceived float64) *Transactions {
-	model.paymentReceived.Float64 = paymentReceived
+func (model *Transactions) SetTotal(total float64) *Transactions {
+	model.total = total
+
+	return model
+}
+
+func (model *Transactions) Discount() sql.NullFloat64 {
+	return model.discount
+}
+
+func (model *Transactions) SetDiscount(discount sql.NullFloat64) *Transactions {
+	model.discount = discount
 
 	return model
 }
@@ -142,21 +139,18 @@ func (model *Transactions) TransactionDetail() string {
 }
 
 const (
-	TransactionSelectListStatement = `SELECT t.id,t.user_id,t.transaction_type,t.transaction_number,t.total_amount,t.payment_received,t.created_at,t.updated_at,t.paid_at,t.canceled_at,` +
-		`u.first_name,u.last_name,u.email,u.phone_number`
-	TransactionSelectDetailStatement = `,ARRAY_TO_STRING(ARRAY_AGG(td.id ||':'|| td.car_id ||':'|| td.car_brand ||':'|| td.car_type ||':'|| td.car_color ||':'|| td.production_year ||':'||` +
-		` td.price ||':'|| td.quantity ||':'|| td.sub_total),',')`
+	TransactionSelectListStatement   = `SELECT t.id,t.user_id,t.transaction_number,t.status,t.total,t.discount,t.created_at,t.updated_at,t.paid_at,t.canceled_at `
+	TransactionSelectDetailStatement = `,ARRAY_TO_STRING(ARRAY_AGG(td.id ||':'|| COALESCE(td.name,'') ||':'|| COALESCE(td.sku,'') ||':'|| COALESCE(td.category,'') ||':'|| `+
+		` COALESCE(td.price,0) ||':'|| COALESCE(td.discount,0) ||':'|| COALESCE(td.quantity,0) ||':'|| COALESCE(td.sub_total,0)),',')`
 	TransactionSelectCountStatement  = `SELECT COUNT(t.id) FROM transactions t`
-	TransactionListJoinStatement     = `INNER JOIN users u ON u.id = t.user_id AND u.deleted_at IS NULL`
 	TransactionDetailJoinStatement   = `INNER JOIN transaction_details td ON td.transaction_id = t.id AND td.deleted_at IS NULL`
 	TransactionDefaultWhereStatement = `WHERE t.deleted_at IS NULL`
-	TransactionGroupByStatement      = `GROUP BY t.id,u.id`
+	TransactionGroupByStatement      = `GROUP BY t.id`
 )
 
 func (model *Transactions) ScanRows(rows *sql.Rows) (interface{}, error) {
-	model.User = NewUserModel()
-	err := rows.Scan(&model.id, &model.userId, &model.transactionType, &model.transactionNumber, &model.totalAmount, &model.paymentReceived, &model.createdAt, &model.updatedAt,
-		&model.paidAt, &model.canceledAt, &model.User.firstName, &model.User.lastName, &model.User.email, &model.User.phoneNumber)
+	err := rows.Scan(&model.id, &model.userId, &model.transactionNumber, &model.status, &model.total, &model.discount, &model.createdAt, &model.updatedAt,
+		&model.paidAt, &model.canceledAt)
 	if err != nil {
 		return model, err
 	}
@@ -165,9 +159,8 @@ func (model *Transactions) ScanRows(rows *sql.Rows) (interface{}, error) {
 }
 
 func (model *Transactions) ScanRow(row *sql.Row) (interface{}, error) {
-	model.User = NewUserModel()
-	err := row.Scan(&model.id, &model.userId, &model.transactionType, &model.transactionNumber, &model.totalAmount, &model.paymentReceived, &model.createdAt, &model.updatedAt,
-		&model.paidAt, &model.canceledAt, &model.User.firstName, &model.User.lastName, &model.User.email, &model.User.phoneNumber, &model.transactionDetail)
+	err := row.Scan(&model.id, &model.userId, &model.transactionNumber, &model.status, &model.total, &model.discount, &model.createdAt, &model.updatedAt,
+		&model.paidAt, &model.canceledAt, &model.transactionDetail)
 	if err != nil {
 		return model, err
 	}

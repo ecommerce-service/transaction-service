@@ -1,7 +1,7 @@
 package boot
 
 import (
-	"booking-car/domain/configs"
+	"github.com/ecommerce-service/transaction-service/domain/configs"
 	"github.com/gofiber/fiber/v2"
 )
 

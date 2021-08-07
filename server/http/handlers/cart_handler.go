@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"booking-car/domain/handlers"
-	"booking-car/domain/requests"
-	"booking-car/pkg/response"
-	"booking-car/usecases"
+	"github.com/ecommerce-service/transaction-service/domain/handlers"
+	"github.com/ecommerce-service/transaction-service/domain/requests"
+	"github.com/ecommerce-service/transaction-service/usecases"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/thel5coder/pkg/response"
 	"net/http"
 	"strconv"
 )
@@ -82,21 +82,4 @@ func (h CartHandler) Delete(ctx *fiber.Ctx) (err error) {
 	err = uc.Delete(id)
 
 	return response.NewResponse(response.NewResponseWithOutMeta(nil, err, http.StatusOK)).Send(ctx)
-}
-
-func (h CartHandler) EditQuantity(ctx *fiber.Ctx) (err error) {
-	req := new(requests.CartEditQuantityRequest)
-	id := ctx.Params("id")
-
-	if err := ctx.BodyParser(req); err != nil {
-		return response.NewResponse(response.NewResponseBadRequest(err)).Send(ctx)
-	}
-	if err := h.UseCaseContract.Config.Validator.GetValidator().Struct(req); err != nil {
-		return response.NewResponse(response.NewResponseErrorValidator(err.(validator.ValidationErrors), h.UseCaseContract.Config.Validator.GetTranslator())).Send(ctx)
-	}
-
-	uc := usecases.NewCartUseCase(h.UseCaseContract)
-	res, err := uc.EditQuantity(req, id)
-
-	return response.NewResponse(response.NewResponseWithOutMeta(res, err, http.StatusOK)).Send(ctx)
 }

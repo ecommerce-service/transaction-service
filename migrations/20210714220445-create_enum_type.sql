@@ -1,11 +1,7 @@
 
 -- +migrate Up
-CREATE TYPE "money_flow" AS ENUM (
-    'in',
-    'out'
-    );
 
-CREATE TYPE "transaction_type" AS ENUM (
+CREATE TYPE "transaction_status_enum" AS ENUM (
     'cart',
     'on_going',
     'success',

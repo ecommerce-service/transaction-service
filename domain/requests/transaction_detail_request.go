@@ -1,12 +1,11 @@
 package requests
 
 type TransactionDetailRequest struct {
-	CarID          string  `json:"car_id"`
-	CarBrand       string  `json:"car_brand"`
-	CarType        string  `json:"car_type"`
-	CarColor       string  `json:"car_color"`
-	ProductionYear string  `json:"production_year"`
-	Price          float64 `json:"price"`
-	Quantity       int     `json:"quantity"`
-	SubTotal       float64 `json:"sub_total"`
+	Name     string  `json:"name"`
+	Sku      string  `json:"sku"`
+	Category string  `json:"category"`
+	Price    float64 `json:"price"`
+	Discount float64 `json:"discount"`
+	Quantity int     `json:"quantity"`
+	SubTotal float64 `json:"sub_total"`
 }

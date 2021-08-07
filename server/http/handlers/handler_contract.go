@@ -1,7 +1,7 @@
 package handlers
 
 import (
-	"booking-car/usecases"
+	"github.com/ecommerce-service/transaction-service/usecases"
 	"github.com/gofiber/fiber/v2"
 )
 

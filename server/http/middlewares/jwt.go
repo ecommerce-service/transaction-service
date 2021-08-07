@@ -1,17 +1,18 @@
 package middlewares
 
 import (
-	"booking-car/pkg/functioncaller"
-	jwtPkg "booking-car/pkg/jwt"
-	"booking-car/pkg/logruslogger"
-	"booking-car/pkg/messages"
-	"booking-car/pkg/response"
-	"booking-car/pkg/str"
-	"booking-car/usecases"
+
 	"errors"
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
+	"github.com/ecommerce-service/transaction-service/usecases"
 	"github.com/gofiber/fiber/v2"
+	"github.com/thel5coder/pkg/functioncaller"
+	jwtPkg "github.com/thel5coder/pkg/jwt"
+	"github.com/thel5coder/pkg/logruslogger"
+	"github.com/thel5coder/pkg/messages"
+	"github.com/thel5coder/pkg/response"
+	"github.com/thel5coder/pkg/str"
 	"strings"
 	"time"
 )
@@ -71,12 +72,12 @@ func (m JwtMiddleware) Use(ctx *fiber.Ctx) error {
 	m.UseCaseContract.UserID = fmt.Sprintf("%v", jweRes["id"])
 	m.UseCaseContract.RoleID = str.StringToInt(roleID)
 
-	var userLoggedIn map[string]interface{}
+	/*var userLoggedIn map[string]interface{}
 	err = m.Config.Redis.GetData(token, &userLoggedIn)
 	if err != nil {
 		logruslogger.Log(logruslogger.WarnLevel, messages.Unauthorized, functioncaller.PrintFuncName(), "pkg-redis-getFromRedis")
 		return response.NewResponse(response.NewResponseUnauthorized(errors.New(messages.Unauthorized))).Send(ctx)
-	}
+	}*/
 
 	return ctx.Next()
 }

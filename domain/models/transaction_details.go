@@ -6,19 +6,18 @@ import (
 )
 
 type TransactionDetails struct {
-	id             string
-	transactionId  string
-	carId          string
-	carBrand       string
-	carType        string
-	carColor       string
-	productionYear string
-	price          float64
-	quantity       int
-	subTotal       float64
-	createdAt      time.Time
-	updatedAt      time.Time
-	deletedAt      sql.NullTime
+	id            string
+	transactionId string
+	name          string
+	sku           string
+	category      string
+	price         float64
+	discount      sql.NullFloat64
+	quantity      int64
+	subTotal      float64
+	createdAt     time.Time
+	updatedAt     time.Time
+	deletedAt     sql.NullTime
 }
 
 func NewTransactionDetailModel() *TransactionDetails {
@@ -45,52 +44,32 @@ func (model *TransactionDetails) SetTransactionId(transactionId string) *Transac
 	return model
 }
 
-func (model *TransactionDetails) CarId() string {
-	return model.carId
+func (model *TransactionDetails) Name() string {
+	return model.name
 }
 
-func (model *TransactionDetails) SetCarId(carId string) *TransactionDetails {
-	model.carId = carId
+func (model *TransactionDetails) SetName(name string) *TransactionDetails {
+	model.name = name
 
 	return model
 }
 
-func (model *TransactionDetails) CarBrand() string {
-	return model.carBrand
+func (model *TransactionDetails) Sku() string {
+	return model.sku
 }
 
-func (model *TransactionDetails) SetCarBrand(carBrand string) *TransactionDetails {
-	model.carBrand = carBrand
+func (model *TransactionDetails) SetSku(sku string) *TransactionDetails {
+	model.sku = sku
 
 	return model
 }
 
-func (model *TransactionDetails) CarType() string {
-	return model.carType
+func (model *TransactionDetails) Category() string {
+	return model.category
 }
 
-func (model *TransactionDetails) SetCarType(carType string) *TransactionDetails {
-	model.carType = carType
-
-	return model
-}
-
-func (model *TransactionDetails) CarColor() string {
-	return model.carColor
-}
-
-func (model *TransactionDetails) SetCarColor(carColor string) *TransactionDetails {
-	model.carColor = carColor
-
-	return model
-}
-
-func (model *TransactionDetails) ProductionYear() string {
-	return model.productionYear
-}
-
-func (model *TransactionDetails) SetProductionYear(productionYear string) *TransactionDetails {
-	model.productionYear = productionYear
+func (model *TransactionDetails) SetCategory(category string) *TransactionDetails {
+	model.category = category
 
 	return model
 }
@@ -105,11 +84,21 @@ func (model *TransactionDetails) SetPrice(price float64) *TransactionDetails {
 	return model
 }
 
-func (model *TransactionDetails) Quantity() int {
+func (model *TransactionDetails) Discount() sql.NullFloat64 {
+	return model.discount
+}
+
+func (model *TransactionDetails) SetDiscount(discount sql.NullFloat64) *TransactionDetails {
+	model.discount = discount
+
+	return model
+}
+
+func (model *TransactionDetails) Quantity() int64 {
 	return model.quantity
 }
 
-func (model *TransactionDetails) SetQuantity(quantity int) *TransactionDetails {
+func (model *TransactionDetails) SetQuantity(quantity int64) *TransactionDetails {
 	model.quantity = quantity
 
 	return model
@@ -153,20 +142,4 @@ func (model *TransactionDetails) SetDeletedAt(deletedAt time.Time) *TransactionD
 	model.deletedAt.Time = deletedAt
 
 	return model
-}
-
-const (
-	TransactionDetailSelectStatement = `SELECT id,transaction_id,car_id,car_brand,car_type,car_color,production_year,price,quantity,sub_total,` +
-		`updated_at,created_at FROM transaction_details`
-	TransactionDetailDefaultWhereStatement = `WHERE deleted_at IS NULL`
-)
-
-func (model *TransactionDetails) ScanRows(rows *sql.Rows) (interface{}, error) {
-	err := rows.Scan(&model.id, &model.transactionId, &model.carId, &model.carBrand, &model.carType, &model.carColor, &model.productionYear, &model.price, &model.quantity, &model.subTotal,
-		&model.createdAt, &model.updatedAt)
-	if err != nil {
-		return model, err
-	}
-
-	return model, nil
 }

@@ -1,9 +1,9 @@
 package queries
 
 import (
-	"booking-car/domain/models"
 	"database/sql"
 	"fmt"
+	"github.com/ecommerce-service/transaction-service/domain/models"
 	"strings"
 )
 
@@ -11,15 +11,15 @@ type TransactionQueryMock struct{
 	db *sql.DB
 }
 
-func (q TransactionQueryMock) Browse(search, orderBy, sort, transactionType string, limit, offset int) (interface{}, error) {
+func (q TransactionQueryMock) Browse(search, orderBy, sort, status string, limit, offset int) (interface{}, error) {
 	var res []*models.Transactions
 	whereStatement := models.TransactionDefaultWhereStatement + ` AND t.transaction_number LIKE $1`
 	params := []interface{}{"%" + strings.ToLower(search) + "%", limit, offset}
-	if transactionType != "" {
-		whereStatement += ` AND t.transaction_type=$4`
-		params = append(params, transactionType)
+	if status != "" {
+		whereStatement += ` AND t.status=$4`
+		params = append(params, status)
 	}
-	statement := models.TransactionSelectListStatement + ` FROM transactions t ` + models.TransactionListJoinStatement + ` ` + whereStatement + ` ORDER BY ` + orderBy + ` ` + sort +
+	statement := models.TransactionSelectListStatement + ` FROM transactions t ` + whereStatement + ` ORDER BY ` + orderBy + ` ` + sort +
 		` LIMIT $2 OFFSET $3`
 
 	rows, err := q.db.Query(statement, params...)
@@ -39,9 +39,8 @@ func (q TransactionQueryMock) Browse(search, orderBy, sort, transactionType stri
 }
 
 func (q TransactionQueryMock) ReadBy(column, operator string, value interface{}) (interface{}, error) {
-	statement := models.TransactionSelectListStatement + ` ` + models.TransactionSelectDetailStatement + ` FROM transactions t ` + models.TransactionListJoinStatement + ` ` +
+	statement := models.TransactionSelectListStatement + ` ` + models.TransactionSelectDetailStatement + ` FROM transactions t ` +
 		models.TransactionDetailJoinStatement + ` ` + models.TransactionDefaultWhereStatement + ` AND ` + column + `` + operator + `$1 ` + models.TransactionGroupByStatement
-	fmt.Println(statement)
 	row := q.db.QueryRow(statement, value)
 	res, err := models.NewTransactionModel().ScanRow(row)
 	if err != nil {
@@ -51,15 +50,15 @@ func (q TransactionQueryMock) ReadBy(column, operator string, value interface{})
 	return res, nil
 }
 
-func (q TransactionQueryMock) Count(search, userId, transactionType string) (res int, err error) {
+func (q TransactionQueryMock) Count(search, userId, status string) (res int, err error) {
 	whereStatement := models.TransactionDefaultWhereStatement + ` AND t.transaction_number LIKE $1`
-	if transactionType != "" {
-		whereStatement += ` AND t.transaction_type='`+transactionType+`'`
+	if status != "" {
+		whereStatement += ` AND t.status='` + status + `'`
 	}
-	if userId != ""{
-		whereStatement += ` AND t.user_id='`+userId+`'`
+	if userId != "" {
+		whereStatement += ` AND t.user_id='` + userId + `'`
 	}
-	statement := models.TransactionSelectCountStatement + ` ` + models.TransactionListJoinStatement + ` ` + whereStatement
+	statement := models.TransactionSelectCountStatement + ` ` + whereStatement
 	fmt.Println(statement)
 
 	err = q.db.QueryRow(statement, "%" + strings.ToLower(search) + "%").Scan(&res)
@@ -93,15 +92,15 @@ func (q TransactionQueryMock) CountAll() (res int, err error) {
 	return res, nil
 }
 
-func (q TransactionQueryMock) BrowseByUserId(search, orderBy, sort, userId, transactionType string, limit, offset int) (interface{}, error) {
+func (q TransactionQueryMock) BrowseByUserId(search, orderBy, sort, userId, status string, limit, offset int) (interface{}, error) {
 	var res []*models.Transactions
 	whereStatement := models.TransactionDefaultWhereStatement + ` AND t.transaction_number LIKE $1 AND t.user_id=$2`
 	params := []interface{}{"%" + strings.ToLower(search) + "%", userId, limit, offset}
-	if transactionType != "" {
-		whereStatement += ` AND t.transaction_type=$5`
-		params = append(params, transactionType)
+	if status != "" {
+		whereStatement += ` AND t.status=$5`
+		params = append(params, status)
 	}
-	statement := models.TransactionSelectListStatement + ` FROM transactions t ` + models.TransactionListJoinStatement + ` ` + whereStatement + ` ORDER BY ` + orderBy + ` ` + sort +
+	statement := models.TransactionSelectListStatement + ` FROM transactions t ` + whereStatement + ` ORDER BY ` + orderBy + ` ` + sort +
 		` LIMIT $3 OFFSET $4`
 	fmt.Println(statement)
 

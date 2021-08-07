@@ -1,8 +1,8 @@
 package routers
 
 import (
-	"booking-car/server/http/handlers"
-	"booking-car/server/http/middlewares"
+	"github.com/ecommerce-service/transaction-service/server/http/handlers"
+	"github.com/ecommerce-service/transaction-service/server/http/middlewares"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -21,13 +21,12 @@ func NewCartRouters(rootGroup fiber.Router, handler handlers.HandlerContract) IR
 func (r CartRouters) RegisterRouter() {
 	handler := handlers.NewCartHandler(r.Handler)
 	jwt := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
-	normalUserMiddleware := middlewares.NewRoleNormalUser(r.Handler.UseCaseContract)
+	normalUserMiddleware := middlewares.NewJwtMiddleware(r.Handler.UseCaseContract)
 
 	cartRouters := r.RouteGroup.Group("/cart")
 	cartRouters.Use(jwt.Use)
 	cartRouters.Use(normalUserMiddleware.Use)
 	cartRouters.Get("", handler.GetListWithPagination)
-	cartRouters.Put("/quantity/:id", handler.EditQuantity)
 	cartRouters.Get("/:id", handler.GetByID)
 	cartRouters.Put("/:id", handler.Edit)
 	cartRouters.Post("", handler.Add)

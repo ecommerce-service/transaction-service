@@ -1,13 +1,12 @@
 package handlers
 
 import (
-	"booking-car/domain/handlers"
-	"booking-car/domain/requests"
-	"booking-car/pkg/response"
-	"booking-car/usecases"
-	"fmt"
+	"github.com/ecommerce-service/transaction-service/domain/handlers"
+	"github.com/ecommerce-service/transaction-service/domain/requests"
+	"github.com/ecommerce-service/transaction-service/usecases"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/thel5coder/pkg/response"
 	"net/http"
 	"strconv"
 )
@@ -40,11 +39,10 @@ func (h TransactionHandler) GetListForNormalUserWithPagination(ctx *fiber.Ctx) (
 	sort := ctx.Query("sort")
 	limit, _ := strconv.Atoi(ctx.Query("limit"))
 	page, _ := strconv.Atoi(ctx.Query("page"))
-	transactionType := ctx.Query("transaction_type")
-	fmt.Println(h.UseCaseContract.RoleID)
+	status := ctx.Query("status")
 
 	uc := usecases.NewTransactionUseCase(h.UseCaseContract)
-	res, pagination, err := uc.GetListForNormalUserWithPagination(search, orderBy, sort, transactionType, page, limit)
+	res, pagination, err := uc.GetListForNormalUserWithPagination(search, orderBy, sort, status, page, limit)
 
 	return response.NewResponse(response.NewResponseWithMeta(res, pagination, err)).Send(ctx)
 }
@@ -99,7 +97,7 @@ func (h TransactionHandler) ConfirmPayment(ctx *fiber.Ctx) (err error) {
 		return response.NewResponse(response.NewResponseBadRequest(err)).Send(ctx)
 	}
 	uc := usecases.NewTransactionUseCase(h.UseCaseContract)
-	res, err := uc.ConfirmPayment(req, id)
+	res, err := uc.ConfirmPayment(id)
 	if err != nil {
 		h.UseCaseContract.Config.DB.RollBack()
 		return response.NewResponse(response.NewResponseUnprocessableEntity(err)).Send(ctx)

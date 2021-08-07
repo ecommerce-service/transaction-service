@@ -1,8 +1,8 @@
 package usecases
 
 import (
-	"booking-car/domain/configs"
-	"booking-car/domain/view_models"
+	"github.com/ecommerce-service/transaction-service/domain/configs"
+	"github.com/ecommerce-service/transaction-service/domain/view_models"
 )
 
 type UseCaseContract struct {

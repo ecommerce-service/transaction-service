@@ -1,12 +1,12 @@
 package usecases
 
 import (
-	"booking-car/domain/models"
-	"booking-car/domain/requests"
-	"booking-car/domain/usecases"
-	"booking-car/pkg/functioncaller"
-	"booking-car/pkg/logruslogger"
-	"booking-car/repository/commands"
+	"github.com/ecommerce-service/transaction-service/domain/models"
+	"github.com/ecommerce-service/transaction-service/domain/requests"
+	"github.com/ecommerce-service/transaction-service/domain/usecases"
+	"github.com/ecommerce-service/transaction-service/repository/commands"
+	"github.com/thel5coder/pkg/functioncaller"
+	"github.com/thel5coder/pkg/logruslogger"
 	"time"
 )
 
@@ -21,8 +21,9 @@ func NewTransactionDetailUseCase(useCaseContract *UseCaseContract) usecases.ITra
 func (uc TransactionDetailUseCase) Add(req requests.TransactionDetailRequest, transactionId string) (err error) {
 	now := time.Now().UTC()
 
-	model := models.NewTransactionDetailModel().SetTransactionId(transactionId).SetCarId(req.CarID).SetCarBrand(req.CarBrand).SetCarType(req.CarType).SetCarColor(req.CarColor).
-		SetProductionYear(req.ProductionYear).SetPrice(req.Price).SetQuantity(req.Quantity).SetSubTotal(req.SubTotal).SetCreatedAt(now).SetUpdatedAt(now)
+	model := models.NewTransactionDetailModel().SetTransactionId(transactionId).
+		SetName(req.Name).SetSku(req.Sku).SetCategory(req.Category).
+		SetPrice(req.Price).SetQuantity(int64(req.Quantity)).SetSubTotal(req.SubTotal).SetCreatedAt(now).SetUpdatedAt(now)
 	cmd := commands.NewTransactionDetailCommand(uc.Config.DB, model)
 	err = cmd.Add()
 	if err != nil {

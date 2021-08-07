@@ -1,8 +1,8 @@
 package main
 
 import (
-	"booking-car/domain/configs"
-	bootApp "booking-car/server/http/boot"
+	"github.com/ecommerce-service/transaction-service/domain/configs"
+	bootApp "github.com/ecommerce-service/transaction-service/server/http/boot"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -32,7 +32,7 @@ func main() {
 		log.Fatal(err)
 	}
 	db.Pool()
-	db.Migration(os.Getenv("DB_MIGRATIONS_DIRECTORY"))
+	//db.Migration(os.Getenv("DB_MIGRATIONS_DIRECTORY"))
 	defer db.GetDbInstance().Close()
 
 	//initialization of fiber instance
